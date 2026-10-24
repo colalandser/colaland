@@ -36,7 +36,6 @@
     .input-group input, .input-group textarea { width: 100%; background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 12px; color: #fff; outline: none; }
     .submit-btn { width: 100%; background: #ff9f43; color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; }
     .btn-action { padding: 8px 16px; border-radius: 6px; border: none; font-weight: 700; cursor: pointer; margin-right: 8px; }
-    .switch-link { color: #ff9f43; cursor: pointer; font-size: 13px; text-align: center; margin-top: 12px; display: block; }
   </style>
 </head>
 <body>
@@ -109,8 +108,8 @@
       <!-- Закрыто -->
       <div id="guestBlock" class="card" style="text-align: center; padding: 48px 20px;">
         <h2>🔒 Доступ ограничен</h2>
-        <p style="color: #8d8d99; margin: 12px 0 24px 0;">Войдите или зарегистрируйтесь, чтобы подать заявку в WhiteList.</p>
-        <button class="submit-btn" style="max-width: 220px; margin: 0 auto;" onclick="openAuthModal('login')">Войти</button>
+        <p style="color: #8d8d99; margin: 12px 0 24px 0;">Войдите в аккаунт, чтобы подать заявку в WhiteList.</p>
+        <button class="submit-btn" style="max-width: 220px; margin: 0 auto;" onclick="openAuthModal()">Войти</button>
       </div>
 
       <!-- Открыто -->
@@ -127,8 +126,7 @@
         <div class="card">
           <h2 id="profTitle" style="margin-bottom: 16px;">Профиль</h2>
           <p style="margin-bottom: 8px; color: #8d8d99;">Статус заявки: <span class="status-badge pending" id="profStatus">Не подана</span></p>
-          <p style="margin-bottom: 8px; color: #8d8d99;">Ваш аккаунт: <b id="profNick" style="color: #fff;">-</b></p>
-          <p style="margin-bottom: 8px; color: #8d8d99;">Ник для Вайтлиста: <b id="profWlNick" style="color: #ff9f43;">Не указан</b></p>
+          <p style="margin-bottom: 8px; color: #8d8d99;">Ник в Minecraft: <b id="profNick" style="color: #fff;">-</b></p>
           <p style="margin-bottom: 20px; color: #8d8d99;">Роль: <b id="profRole" style="color: #fff;">Игрок</b></p>
           <button style="background: #202024; color: #f55a5a; border: 1px solid #29292e; padding: 8px 16px; border-radius: 6px; cursor: pointer;" onclick="logout()">Выйти</button>
         </div>
@@ -136,15 +134,11 @@
         <!-- Форма заявки -->
         <div class="card" id="wlFormCard">
           <h3 style="margin-bottom: 6px;">Подать заявку в WhiteList</h3>
-          <p style="color: #8d8d99; font-size: 14px; margin-bottom: 16px;">Укажите ник для вайтлиста и ваши планы на сервере.</p>
+          <p style="color: #8d8d99; font-size: 14px; margin-bottom: 16px;">Заполните форму для доступа на сервер.</p>
           <form onsubmit="submitWL(event)">
             <div class="input-group">
-              <label>Minecraft ник для Вайтлиста (можно указать другой)</label>
-              <input type="text" id="wlNickInput" required placeholder="Например: MyCoolName" oninput="validateEnglishInput(this)">
-            </div>
-            <div class="input-group">
-              <label>Что вы будете делать на сервере?</label>
-              <textarea id="wlText" rows="3" required placeholder="Например: строить красивый город, развивать экономику..."></textarea>
+              <label>Почему вы хотите играть?</label>
+              <textarea id="wlText" rows="3" required placeholder="Расскажите немного о себе..."></textarea>
             </div>
             <button type="submit" class="submit-btn" id="wlSubmitBtn">Отправить заявку</button>
           </form>
@@ -154,27 +148,22 @@
     </section>
   </main>
 
-  <!-- Модалка входа / регистрации -->
+  <!-- Модалка входа -->
   <div class="modal-overlay" id="authModal">
     <div class="modal-card">
-      <h2 id="modalTitle" style="margin-bottom: 20px;">Авторизация</h2>
-      <form id="authForm" onsubmit="handleAuth(event)">
+      <h2 style="margin-bottom: 20px;">Авторизация</h2>
+      <form onsubmit="handleAuth(event)">
         <div class="input-group">
-          <label>Никнейм (только английские буквы)</label>
-          <input type="text" id="inputNick" required placeholder="Ваш ник" autocomplete="off" oninput="validateEnglishInput(this)">
+          <label>Никнейм</label>
+          <input type="text" id="inputNick" required placeholder="Ваш ник" autocomplete="off">
         </div>
         <div class="input-group">
           <label>Пароль</label>
           <input type="password" id="inputPass" required placeholder="••••••••">
         </div>
-        <div class="input-group" id="confirmPassGroup" style="display: none;">
-          <label>Подтвердите пароль</label>
-          <input type="password" id="inputPassConfirm" placeholder="••••••••">
-        </div>
-        <button type="submit" class="submit-btn" id="modalSubmitBtn">Продолжить</button>
+        <button type="submit" class="submit-btn">Продолжить</button>
       </form>
-      <span class="switch-link" id="switchModalMode" onclick="toggleAuthMode()">Нет аккаунта? Зарегистрироваться</span>
-      <div style="text-align: center; margin-top: 12px;">
+      <div style="text-align: center; margin-top: 16px;">
         <span style="color: #8d8d99; font-size: 13px; cursor: pointer;" onclick="closeAuthModal()">Отмена</span>
       </div>
     </div>
@@ -183,13 +172,6 @@
   <script>
     let currentUser = JSON.parse(localStorage.getItem('colaland_user')) || null;
     let applications = JSON.parse(localStorage.getItem('colaland_apps')) || [];
-    let registeredUsers = JSON.parse(localStorage.getItem('colaland_reg_users')) || [];
-    let isRegisterMode = false;
-
-    // Функция блокировки русских букв (оставляет только английские, цифры и _)
-    function validateEnglishInput(input) {
-      input.value = input.value.replace(/[^a-zA-Z0-9_]/g, '');
-    }
 
     function updateUI() {
       const guestBlock = document.getElementById('guestBlock');
@@ -208,7 +190,6 @@
           wlFormCard.style.display = 'none';
           document.getElementById('profTitle').textContent = 'Администратор';
           document.getElementById('profNick').textContent = 'ColalandAdmin';
-          document.getElementById('profWlNick').textContent = '—';
           document.getElementById('profRole').textContent = 'Создатель';
           document.getElementById('profStatus').textContent = 'Владелец сайта';
           document.getElementById('profStatus').className = 'status-badge';
@@ -220,20 +201,11 @@
           document.getElementById('profNick').textContent = currentUser.nick;
           document.getElementById('profRole').textContent = 'Игрок';
 
-          const app = applications.find(a => a.user.toLowerCase() === currentUser.nick.toLowerCase());
+          const app = applications.find(a => a.nick.toLowerCase() === currentUser.nick.toLowerCase());
           const st = app ? app.status : 'Не подана';
           const badge = document.getElementById('profStatus');
           badge.textContent = st;
           
-          if (app) {
-            document.getElementById('profWlNick').textContent = app.nick;
-            document.getElementById('wlNickInput').value = app.nick;
-            document.getElementById('wlText').value = app.reason;
-          } else {
-            document.getElementById('profWlNick').textContent = 'Не указан';
-            document.getElementById('wlNickInput').value = currentUser.nick; // По умолчанию подставляем аккаунт
-          }
-
           if (st === 'Принята') {
             badge.className = 'status-badge';
           } else if (st === 'Отклонена') {
@@ -265,44 +237,16 @@
       }
     }
 
-    function openAuthModal(mode = 'login') {
+    function openAuthModal() {
       if (currentUser) {
         switchTab('profile');
-        return;
+      } else {
+        document.getElementById('authModal').style.display = 'flex';
       }
-      isRegisterMode = (mode === 'register');
-      updateModalMode();
-      document.getElementById('authModal').style.display = 'flex';
     }
 
     function closeAuthModal() {
       document.getElementById('authModal').style.display = 'none';
-    }
-
-    function toggleAuthMode() {
-      isRegisterMode = !isRegisterMode;
-      updateModalMode();
-    }
-
-    function updateModalMode() {
-      const title = document.getElementById('modalTitle');
-      const confirmGroup = document.getElementById('confirmPassGroup');
-      const submitBtn = document.getElementById('modalSubmitBtn');
-      const switchLink = document.getElementById('switchModalMode');
-
-      if (isRegisterMode) {
-        title.textContent = 'Регистрация';
-        confirmGroup.style.display = 'block';
-        document.getElementById('inputPassConfirm').required = true;
-        submitBtn.textContent = 'Зарегистрироваться';
-        switchLink.textContent = 'Уже есть аккаунт? Войти';
-      } else {
-        title.textContent = 'Авторизация';
-        confirmGroup.style.display = 'none';
-        document.getElementById('inputPassConfirm').required = false;
-        submitBtn.textContent = 'Войти';
-        switchLink.textContent = 'Нет аккаунта? Зарегистрироваться';
-      }
     }
 
     function handleAuth(e) {
@@ -317,28 +261,13 @@
           alert('❌ Неверный пароль администратора!');
           return;
         }
-      } else if (isRegisterMode) {
-        const passConfirm = document.getElementById('inputPassConfirm').value.trim();
-        if (pass !== passConfirm) {
-          alert('❌ Пароли не совпадают!');
-          return;
-        }
-        const existing = registeredUsers.find(u => u.nick.toLowerCase() === nick.toLowerCase());
-        if (existing) {
-          alert('❌ Этот ник уже зарегистрирован!');
-          return;
-        }
-        registeredUsers.push({ nick, pass });
-        localStorage.setItem('colaland_reg_users', JSON.stringify(registeredUsers));
-        currentUser = { nick: nick, isAdmin: false };
-        alert('✅ Успешная регистрация!');
       } else {
-        const user = registeredUsers.find(u => u.nick.toLowerCase() === nick.toLowerCase() && u.pass === pass);
-        if (!user) {
-          alert('❌ Неверный ник или пароль, либо аккаунт не зарегистрирован!');
-          return;
-        }
-        currentUser = { nick: user.nick, isAdmin: false };
+        const app = applications.find(a => a.nick.toLowerCase() === nick.toLowerCase());
+        currentUser = { 
+          nick: nick, 
+          isAdmin: false, 
+          status: app ? app.status : 'Не подана' 
+        };
       }
 
       localStorage.setItem('colaland_user', JSON.stringify(currentUser));
@@ -358,28 +287,22 @@
       e.preventDefault();
       if (!currentUser || currentUser.isAdmin) return;
 
-      const wlNick = document.getElementById('wlNickInput').value.trim();
       const reason = document.getElementById('wlText').value.trim();
       const btn = document.getElementById('wlSubmitBtn');
-
-      if (!wlNick) {
-        alert('❌ Укажите ник для вайтлиста!');
-        return;
-      }
-
-      const idx = applications.findIndex(a => a.user.toLowerCase() === currentUser.nick.toLowerCase());
+      const idx = applications.findIndex(a => a.nick.toLowerCase() === currentUser.nick.toLowerCase());
       
       if (idx >= 0) {
-        applications[idx] = { user: currentUser.nick, nick: wlNick, reason: reason, status: 'На рассмотрении' };
+        applications[idx] = { nick: currentUser.nick, reason: reason, status: 'На рассмотрении' };
       } else {
-        applications.push({ user: currentUser.nick, nick: wlNick, reason: reason, status: 'На рассмотрении' });
+        applications.push({ nick: currentUser.nick, reason: reason, status: 'На рассмотрении' });
       }
 
       localStorage.setItem('colaland_apps', JSON.stringify(applications));
       btn.textContent = 'Отправлено! ✅';
-      
-      setTimeout(() => { btn.textContent = 'Отправить заявку'; }, 3000);
+      currentUser.status = 'На рассмотрении';
+      localStorage.setItem('colaland_user', JSON.stringify(currentUser));
       updateUI();
+      setTimeout(() => { btn.textContent = 'Отправить заявку'; }, 3000);
     }
 
     function renderAdminApps() {
@@ -401,10 +324,9 @@
 
         div.innerHTML = `
           <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-            <span>Аккаунт: <b>${app.user}</b> | Ник в WL: <b style="color: #ff9f43;">${app.nick}</b></span>
+            <b>👤 ${app.nick}</b>
             <span class="${badgeClass}">${app.status}</span>
           </div>
-          <p style="font-size: 13px; color: #8d8d99; margin-bottom: 4px;">Планы на сервере:</p>
           <p style="font-size: 14px; color: #c4c4cc; margin-bottom: 12px;">${app.reason}</p>
           <div>
             <button class="btn-action" style="background: #2ed573; color: #000;" onclick="setAppStatus(${index}, 'Принята')">Принять</button>
@@ -418,8 +340,14 @@
     function setAppStatus(idx, status) {
       applications[idx].status = status;
       localStorage.setItem('colaland_apps', JSON.stringify(applications));
+      
+      // Если игрок сейчас в сети на сайте, обновляем его данные тоже
+      if (currentUser && currentUser.nick.toLowerCase() === applications[idx].nick.toLowerCase()) {
+        currentUser.status = status;
+        localStorage.setItem('colaland_user', JSON.stringify(currentUser));
+      }
+
       renderAdminApps();
-      updateUI();
     }
 
     updateUI();

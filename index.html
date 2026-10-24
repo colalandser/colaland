@@ -128,7 +128,8 @@
           <h2 id="profTitle" style="margin-bottom: 16px;">Профиль</h2>
           <p style="margin-bottom: 8px; color: #8d8d99;">Статус заявки: <span class="status-badge pending" id="profStatus">Не подана</span></p>
           <p style="margin-bottom: 8px; color: #8d8d99;">Ваш аккаунт: <b id="profNick" style="color: #fff;">-</b></p>
-          <p style="margin-bottom: 8px; color: #8d8d99;">Ник для Вайтлиста: <b id="profWlNick" style="color: #ff9f43;">Не указан</b></p>
+          <p style="margin-bottom: 8px; color: #8d8d99;">Ник в Майнкрафте: <b id="profWlNick" style="color: #ff9f43;">Не указан</b></p>
+          <p style="margin-bottom: 8px; color: #8d8d99;">Ник в Twitch: <b id="profTwitchNick" style="color: #9146FF;">Не указан</b></p>
           <p style="margin-bottom: 20px; color: #8d8d99;">Роль: <b id="profRole" style="color: #fff;">Игрок</b></p>
           <button style="background: #202024; color: #f55a5a; border: 1px solid #29292e; padding: 8px 16px; border-radius: 6px; cursor: pointer;" onclick="logout()">Выйти</button>
         </div>
@@ -136,15 +137,19 @@
         <!-- Форма заявки -->
         <div class="card" id="wlFormCard">
           <h3 style="margin-bottom: 6px;">Подать заявку в WhiteList</h3>
-          <p style="color: #8d8d99; font-size: 14px; margin-bottom: 16px;">Укажите ник для вайтлиста и ваши планы на сервере.</p>
+          <p style="color: #8d8d99; font-size: 14px; margin-bottom: 16px;">Заполните данные для проверки администрацией.</p>
           <form onsubmit="submitWL(event)">
             <div class="input-group">
-              <label>Minecraft ник для Вайтлиста (можно указать другой)</label>
-              <input type="text" id="wlNickInput" required placeholder="Например: MyCoolName" oninput="validateEnglishInput(this)">
+              <label>Ник в Minecraft</label>
+              <input type="text" id="wlNickInput" required placeholder="Ваш ник в майнкрафте" oninput="validateEnglishInput(this)">
+            </div>
+            <div class="input-group">
+              <label>Ник на Twitch</label>
+              <input type="text" id="wlTwitchInput" required placeholder="Ваш ник на twitch" oninput="validateEnglishInput(this)">
             </div>
             <div class="input-group">
               <label>Что вы будете делать на сервере?</label>
-              <textarea id="wlText" rows="3" required placeholder="Например: строить красивый город, развивать экономику..."></textarea>
+              <textarea id="wlText" rows="3" required placeholder="Например: строить город, развивать экономику..."></textarea>
             </div>
             <button type="submit" class="submit-btn" id="wlSubmitBtn">Отправить заявку</button>
           </form>
@@ -208,6 +213,7 @@
           document.getElementById('profTitle').textContent = 'Администратор';
           document.getElementById('profNick').textContent = 'ColalandAdmin';
           document.getElementById('profWlNick').textContent = '—';
+          document.getElementById('profTwitchNick').textContent = '—';
           document.getElementById('profRole').textContent = 'Создатель';
           document.getElementById('profStatus').textContent = 'Владелец сайта';
           document.getElementById('profStatus').className = 'status-badge';
@@ -226,11 +232,15 @@
           
           if (app) {
             document.getElementById('profWlNick').textContent = app.nick;
+            document.getElementById('profTwitchNick').textContent = app.twitch;
             document.getElementById('wlNickInput').value = app.nick;
+            document.getElementById('wlTwitchInput').value = app.twitch;
             document.getElementById('wlText').value = app.reason;
           } else {
             document.getElementById('profWlNick').textContent = 'Не указан';
+            document.getElementById('profTwitchNick').textContent = 'Не указан';
             document.getElementById('wlNickInput').value = currentUser.nick;
+            document.getElementById('wlTwitchInput').value = '';
           }
 
           if (st === 'Принята') {
@@ -342,8 +352,7 @@
 
       localStorage.setItem('colaland_user', JSON.stringify(currentUser));
       updateUI();
-      closeAuthManager = closeAuthModal();
-      closeAuthModal();
+      closeAuthModal(); // Окно теперь само закрывается
       switchTab('profile');
     }
 
@@ -359,20 +368,21 @@
       if (!currentUser || currentUser.isAdmin) return;
 
       const wlNick = document.getElementById('wlNickInput').value.trim();
+      const twitchNick = document.getElementById('wlTwitchInput').value.trim();
       const reason = document.getElementById('wlText').value.trim();
       const btn = document.getElementById('wlSubmitBtn');
 
-      if (!wlNick) {
-        alert('❌ Укажите ник для вайтлиста!');
+      if (!wlNick || !twitchNick) {
+        alert('❌ Заполните ник в Майнкрафте и Twitch!');
         return;
       }
 
       const idx = applications.findIndex(a => a.user.toLowerCase() === currentUser.nick.toLowerCase());
       
       if (idx >= 0) {
-        applications[idx] = { user: currentUser.nick, nick: wlNick, reason: reason, status: 'На рассмотрении' };
+        applications[idx] = { user: currentUser.nick, nick: wlNick, twitch: twitchNick, reason: reason, status: 'На рассмотрении' };
       } else {
-        applications.push({ user: currentUser.nick, nick: wlNick, reason: reason, status: 'На рассмотрении' });
+        applications.push({ user: currentUser.nick, nick: wlNick, twitch: twitchNick, reason: reason, status: 'На рассмотрении' });
       }
 
       localStorage.setItem('colaland_apps', JSON.stringify(applications));
@@ -397,32 +407,4 @@
         
         let badgeClass = 'status-badge pending';
         if (app.status === 'Принята') badgeClass = 'status-badge';
-        if (app.status === 'Отклонена') badgeClass = 'status-badge rejected';
-
-        div.innerHTML = `
-          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-            <span>Аккаунт: <b>${app.user}</b> | Ник в WL: <b style="color: #ff9f43;">${app.nick}</b></span>
-            <span class="${badgeClass}">${app.status}</span>
-          </div>
-          <p style="font-size: 13px; color: #8d8d99; margin-bottom: 4px;">Планы на сервере:</p>
-          <p style="font-size: 14px; color: #c4c4cc; margin-bottom: 12px;">${app.reason}</p>
-          <div>
-            <button class="btn-action" style="background: #2ed573; color: #000;" onclick="setAppStatus(${index}, 'Принята')">Принять</button>
-            <button class="btn-action" style="background: #f55a5a; color: #fff;" onclick="setAppStatus(${index}, 'Отклонена')">Отклонить</button>
-          </div>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function setAppStatus(idx, status) {
-      applications[idx].status = status;
-      localStorage.setItem('colaland_apps', JSON.stringify(applications));
-      renderAdminApps();
-      updateUI();
-    }
-
-    updateUI();
-  </script>
-</body>
-</html>
+        if (

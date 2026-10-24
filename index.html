@@ -241,11 +241,12 @@
             document.getElementById('profTwitchNick').textContent = 'Не указан';
             document.getElementById('wlNickInput').value = currentUser.nick;
             document.getElementById('wlTwitchInput').value = '';
+            document.getElementById('wlText').value = '';
           }
 
-          if (st === 'Принята') {
+          if (st === 'Одобрено') {
             badge.className = 'status-badge';
-          } else if (st === 'Отклонена') {
+          } else if (st === 'Отклонено') {
             badge.className = 'status-badge rejected';
           } else {
             badge.className = 'status-badge pending';
@@ -340,7 +341,6 @@
         registeredUsers.push({ nick, pass });
         localStorage.setItem('colaland_reg_users', JSON.stringify(registeredUsers));
         currentUser = { nick: nick, isAdmin: false };
-        alert('✅ Успешная регистрация!');
       } else {
         const user = registeredUsers.find(u => u.nick.toLowerCase() === nick.toLowerCase() && u.pass === pass);
         if (!user) {
@@ -351,8 +351,11 @@
       }
 
       localStorage.setItem('colaland_user', JSON.stringify(currentUser));
+      
+      // Закрываем модальное окно принудительно
+      document.getElementById('authModal').style.display = 'none';
+      
       updateUI();
-      closeAuthModal(); // Окно теперь само закрывается
       switchTab('profile');
     }
 
@@ -390,6 +393,7 @@
       
       setTimeout(() => { btn.textContent = 'Отправить заявку'; }, 3000);
       updateUI();
+      alert('✅ Заявка успешно отправлена!');
     }
 
     function renderAdminApps() {
@@ -403,8 +407,36 @@
 
       applications.forEach((app, index) => {
         const div = document.createElement('div');
-        div.style.cssText = 'background: #18181b; padding: 14px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #27272a;';
+        div.style.cssText = 'background: #18181b; padding: 14px; margin-bottom: 12px; border: 1px solid #27272a; border-radius: 8px;';
         
         let badgeClass = 'status-badge pending';
-        if (app.status === 'Принята') badgeClass = 'status-badge';
-        if (
+        if (app.status === 'Одобрено') badgeClass = 'status-badge';
+        if (app.status === 'Отклонено') badgeClass = 'status-badge rejected';
+
+        div.innerHTML = `
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+            <span>Аккаунт: <b>${app.user}</b> | Майн: <b style="color: #ff9f43;">${app.nick}</b> | Твич: <b style="color: #9146FF;">${app.twitch}</b></span>
+            <span class="${badgeClass}">${app.status}</span>
+          </div>
+          <p style="font-size: 13px; color: #8d8d99; margin-bottom: 4px;">Планы на сервере:</p>
+          <p style="font-size: 14px; color: #c4c4cc; margin-bottom: 12px;">${app.reason}</p>
+          <div>
+            <button class="btn-action" style="background: #2ed573; color: #000;" onclick="setAppStatus(${index}, 'Одобрено')">Одобрить</button>
+            <button class="btn-action" style="background: #f55a5a; color: #fff;" onclick="setAppStatus(${index}, 'Отклонено')">Отклонить</button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function setAppStatus(idx, status) {
+      applications[idx].status = status;
+      localStorage.setItem('colaland_apps', JSON.stringify(applications));
+      renderAdminApps();
+      updateUI();
+    }
+
+    updateUI();
+  </script>
+</body>
+</html>

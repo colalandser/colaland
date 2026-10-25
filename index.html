@@ -38,8 +38,6 @@
     .badges-row { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
     .badge-platform { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
     .badge-twitch { background: #9146FF; color: #fff; }
-    .badge-online { background: rgba(46, 213, 115, 0.15); color: #2ed573; border: 1px solid rgba(46, 213, 115, 0.3); display: flex; align-items: center; gap: 4px; }
-    .badge-online::before { content: ''; width: 6px; height: 6px; background: #2ed573; border-radius: 50%; display: inline-block; }
 
     .stream-info { font-size: 13px; color: #a8a8b3; margin-bottom: 16px; line-height: 1.4; }
     
@@ -48,7 +46,6 @@
 
     .status-badge { background: rgba(46, 213, 115, 0.15); color: #2ed573; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 13px; border: 1px solid rgba(46, 213, 115, 0.3); }
     .status-badge.pending { background: rgba(255, 159, 67, 0.15); color: #ff9f43; border-color: rgba(255, 159, 67, 0.3); }
-    .status-badge.rejected { background: rgba(245, 90, 90, 0.15); color: #f55a5a; border-color: rgba(245, 90, 90, 0.3); }
     
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; }
     .modal-card { background: #121214; border: 1px solid #202024; border-radius: 16px; padding: 32px; width: 100%; max-width: 380px; }
@@ -57,6 +54,11 @@
     .input-group input, .input-group textarea { width: 100%; background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 12px; color: #fff; outline: none; }
     .submit-btn { width: 100%; background: #ff9f43; color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; }
     .switch-link { color: #ff9f43; cursor: pointer; font-size: 13px; text-align: center; margin-top: 12px; display: block; }
+
+    /* Стили подвала (футера) */
+    footer { background: #121214; border-top: 1px solid #202024; padding: 24px; text-align: center; color: #8d8d99; font-size: 14px; margin-top: auto; }
+    footer .container { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 6px; }
+    footer .credit { color: #ff9f43; font-weight: 600; margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -117,7 +119,7 @@
       </div>
     </section>
 
-  <!-- МЕДИА -->
+    <!-- МЕДИА -->
     <section id="mediaSection" class="section">
       <h1 style="margin-bottom: 8px; font-size: 32px;">Медиа Colaland</h1>
       <p style="color: #8d8d99; margin-bottom: 24px;">Стримеры и контент-мейкеры нашего проекта.</p>
@@ -153,7 +155,7 @@
       </div>
     </section>
 
-    <!-- ВАЙТЛИСТ -->
+    <!-- ПРОФИЛЬ / ВАЙТЛИСТ -->
     <section id="profileSection" class="section">
       <div id="guestBlock" class="card" style="text-align: center; padding: 48px 20px;">
         <h2>🔒 Доступ ограничен</h2>
@@ -195,6 +197,15 @@
       </div>
     </section>
   </main>
+
+  <!-- Футер (подвал) сайта -->
+  <footer>
+    <div class="container">
+      <span>© 2026 Colaland — ванильный Minecraft-сервер</span>
+      <span>Не является продуктом Mojang / Microsoft</span>
+      <span class="credit">Сайт сделан Maks8777</span>
+    </div>
+  </footer>
 
   <!-- Модалка авторизации -->
   <div class="modal-overlay" id="authModal">
@@ -409,15 +420,36 @@
       } else {
         applications.push(app);
       }
-
       localStorage.setItem('colaland_apps', JSON.stringify(applications));
+
+      var webhookUrl = 'https://discord.com/api/webhooks/1563623956412366861/MIkjL1QHGo3SExpovGOrbnp3i5FTL8DUwDiB2eeVgnr2t4GyBQ6su9JygVbAv9UOvUsq';
+      var payload = {
+        content: "📥 **Новая заявка в WhiteList!**",
+        embeds: [{
+          title: "Информация об игроке",
+          color: 16752451,
+          fields: [
+            { name: "👤 Аккаунт на сайте", value: currentUser.nick, inline: true },
+            { name: "⛏️ Ник в Minecraft", value: wlNick, inline: true },
+            { name: "🟣 Ник на Twitch", value: twitchNick, inline: true },
+            { name: "📝 Планы на сервере", value: reason, inline: false }
+          ],
+          timestamp: new Date().toISOString()
+        }]
+      };
+
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(err => console.log('Ошибка отправки в Discord:', err));
 
       var msg = document.getElementById('wlMsg');
       msg.style.display = 'block';
       msg.style.background = 'rgba(46,213,115,0.15)';
       msg.style.color = '#2ed573';
       msg.style.border = '1px solid #2ed573';
-      msg.textContent = '✅ Заявка успешно сохранена! Ожидайте решения.';
+      msg.textContent = '✅ Заявка успешно отправлена и передана администрации!';
 
       updateUI();
     }

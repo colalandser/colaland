@@ -116,13 +116,6 @@
       <!-- Открыто -->
       <div id="userBlock" style="display: none;">
         
-        <!-- Админка -->
-        <div id="adminPanel" class="card" style="border-color: #ff9f43; display: none;">
-          <h2 style="color: #ff9f43; margin-bottom: 16px;">👑 Панель Администратора</h2>
-          <p style="color: #8d8d99; font-size: 14px; margin-bottom: 16px;">Управление заявками игроков:</p>
-          <div id="appsContainer"></div>
-        </div>
-
         <!-- Профиль -->
         <div class="card">
           <h2 id="profTitle" style="margin-bottom: 16px;">Профиль</h2>
@@ -131,6 +124,7 @@
           <p style="margin-bottom: 8px; color: #8d8d99;">Ник в Майнкрафте: <b id="profWlNick" style="color: #ff9f43;">Не указан</b></p>
           <p style="margin-bottom: 8px; color: #8d8d99;">Ник в Twitch: <b id="profTwitchNick" style="color: #9146FF;">Не указан</b></p>
           <p style="margin-bottom: 20px; color: #8d8d99;">Роль: <b id="profRole" style="color: #fff;">Игрок</b></p>
+          <div id="profReason" style="display:none; margin-bottom: 20px; padding: 12px; border-radius: 8px; font-size: 14px; line-height: 1.4;"></div>
           <button style="background: #202024; color: #f55a5a; border: 1px solid #29292e; padding: 8px 16px; border-radius: 6px; cursor: pointer;" onclick="logout()">Выйти</button>
         </div>
 
@@ -141,17 +135,18 @@
           <form onsubmit="submitWL(event)">
             <div class="input-group">
               <label>Ник в Minecraft</label>
-              <input type="text" id="wlNickInput" required placeholder="Ваш ник в майнкрафте" oninput="validateEnglishInput(this)">
+              <input type="text" id="wlNickInput" required placeholder="Ваш ник в майнкрафте" autocomplete="off" oninput="validateEnglishInput(this)">
             </div>
             <div class="input-group">
               <label>Ник на Twitch</label>
-              <input type="text" id="wlTwitchInput" required placeholder="Ваш ник на twitch" oninput="validateEnglishInput(this)">
+              <input type="text" id="wlTwitchInput" required placeholder="Ваш ник на twitch" autocomplete="off" oninput="validateEnglishInput(this)">
             </div>
             <div class="input-group">
               <label>Что вы будете делать на сервере?</label>
               <textarea id="wlText" rows="3" required placeholder="Например: строить город, развивать экономику..."></textarea>
             </div>
             <button type="submit" class="submit-btn" id="wlSubmitBtn">Отправить заявку</button>
+            <div id="wlMsg" style="display:none; margin-top:12px; padding:12px; border-radius:8px; font-size:14px; line-height:1.4;"></div>
           </form>
         </div>
 
@@ -163,7 +158,7 @@
   <div class="modal-overlay" id="authModal">
     <div class="modal-card">
       <h2 id="modalTitle" style="margin-bottom: 20px;">Авторизация</h2>
-      <form id="authForm" onsubmit="handleAuth(event)">
+      <form onsubmit="handleAuth(event)">
         <div class="input-group">
           <label>Никнейм (только английские буквы)</label>
           <input type="text" id="inputNick" required placeholder="Ваш ник" autocomplete="off" oninput="validateEnglishInput(this)">
@@ -186,10 +181,121 @@
   </div>
 
   <script>
-    let currentUser = JSON.parse(localStorage.getItem('colaland_user')) || null;
-    let applications = JSON.parse(localStorage.getItem('colaland_apps')) || [];
-    let registeredUsers = JSON.parse(localStorage.getItem('colaland_reg_users')) || [];
+    // Безопасное хранилище: если браузер блокирует localStorage (предпросмотр, iframe, приватный режим),
+    // данные хранятся в памяти до перезагрузки страницы, и сайт всё равно работает.
+    const store = (function () {
+      try {
+        const t = '__colaland_test__';
+        window.localStorage.setItem(t, '1');
+        window.localStorage.removeItem(t);
+        return window.localStorage;
+      } catch (e) {
+        const mem = {};
+        return {
+          getItem: k => (k in mem ? mem[k] : null),
+          setItem: (k, v) => { mem[k] = String(v); },
+          removeItem: k => { delete mem[k]; }
+        };
+      }
+    })();
+
+    function readJSON(key, fallback) {
+      try { return JSON.parse(store.getItem(key)) || fallback; } catch (e) { return fallback; }
+    }
+
+    let currentUser = readJSON('colaland_user', null);
+    let applications = readJSON('colaland_apps', []);
+    let registeredUsers = readJSON('colaland_reg_users', []);
+
+    // Чистим данные от старых версий сайта: битые записи без нужных полей выбрасываем,
+    // иначе они ломают весь скрипт (ошибка toLowerCase of undefined).
+    if (!currentUser || typeof currentUser.nick !== 'string' || currentUser.isAdmin) currentUser = null;
+    if (!Array.isArray(applications)) applications = [];
+    applications = applications
+      .filter(a => a && typeof a.user === 'string')
+      .map(a => ({
+        user: a.user,
+        nick: String(a.nick || ''),
+        twitch: String(a.twitch || ''),
+        reason: String(a.reason || ''),
+        status: String(a.status || 'На рассмотрении'),
+        submittedAt: Number(a.submittedAt || 0)
+      }));
+    if (!Array.isArray(registeredUsers)) registeredUsers = [];
+    registeredUsers = registeredUsers.filter(u => u && typeof u.nick === 'string' && typeof u.pass === 'string');
     let isRegisterMode = false;
+
+    // ====== НАСТРОЙКА ОТПРАВКИ ЗАЯВОК ======
+    // Вставьте сюда URL Discord-вебхука (Настройки канала → Интеграции → Вебхуки → Копировать URL).
+    // Каждая заявка будет приходить в ваш Discord-канал.
+    const WEBHOOK_URL = 'https://discord.com/api/webhooks/1563623956412366861/MIkjL1QHGo3SExpovGOrbnp3i5FTL8DUwDiB2eeVgnr2t4GyBQ6su9JygVbAv9UOvUsq';
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    async function sendToDiscord(app) {
+      if (!WEBHOOK_URL) return false;
+      const res = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: 'Colaland WhiteList',
+          embeds: [{
+            title: '📝 Новая заявка в WhiteList',
+            color: 0xff9f43,
+            fields: [
+              { name: 'Аккаунт на сайте', value: '`' + app.user.slice(0, 100) + '`' },
+              { name: 'Ник в Minecraft', value: '`' + app.nick.slice(0, 100) + '`', inline: true },
+              { name: 'Ник на Twitch', value: '`' + app.twitch.slice(0, 100) + '`', inline: true },
+              { name: 'Что будет делать на сервере', value: (app.reason || '—').slice(0, 1000) },
+              { name: 'Команда для консоли (скопируйте, если принимаете)', value: '```whitelist add ' + app.nick.slice(0, 100) + '```' }
+            ],
+            timestamp: new Date().toISOString()
+          }]
+        })
+      });
+      return res.ok;
+    }
+
+    // ====== РЕШЕНИЯ АДМИНИСТРАЦИИ (файл decisions.json рядом с сайтом) ======
+    let decisions = {};
+
+    async function loadDecisions() {
+      try {
+        const res = await fetch('decisions.json?t=' + Date.now(), { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          const next = {};
+          Object.keys(data).forEach(k => { if (k.charAt(0) !== '_') next[k.toLowerCase()] = data[k]; });
+          decisions = next;
+        }
+      } catch (e) { /* файл недоступен (например, сайт открыт с компьютера) — остаёмся на локальном статусе */ }
+      updateUI();
+    }
+
+    function isoDay(ts) { return new Date(ts).toISOString().slice(0, 10); }
+
+    function getMyApp() {
+      if (!currentUser) return null;
+      return applications.find(a => a.user.toLowerCase() === currentUser.nick.toLowerCase()) || null;
+    }
+
+    function getDecision() {
+      if (!currentUser) return null;
+      const app = getMyApp();
+      // ищем решение сначала по нику в Minecraft из заявки, затем по нику аккаунта на сайте
+      const keys = [app && app.nick, currentUser.nick].filter(Boolean).map(k => k.toLowerCase());
+      let d = null;
+      for (const key of keys) {
+        const c = decisions[key];
+        if (c && (c.status === 'accepted' || c.status === 'rejected')) { d = c; break; }
+      }
+      if (!d) return null;
+      // если игрок подал заявку заново после даты решения — старое решение не показываем
+      if (app && app.submittedAt && d.date && String(d.date) < isoDay(app.submittedAt)) return null;
+      return d;
+    }
 
     function validateEnglishInput(input) {
       input.value = input.value.replace(/[^a-zA-Z0-9_]/g, '');
@@ -199,57 +305,63 @@
       const guestBlock = document.getElementById('guestBlock');
       const userBlock = document.getElementById('userBlock');
       const navAuthBtn = document.getElementById('navAuthBtn');
-      const adminPanel = document.getElementById('adminPanel');
-      const wlFormCard = document.getElementById('wlFormCard');
 
       if (currentUser) {
         navAuthBtn.textContent = currentUser.nick;
         guestBlock.style.display = 'none';
         userBlock.style.display = 'block';
 
-        if (currentUser.isAdmin) {
-          adminPanel.style.display = 'block';
-          wlFormCard.style.display = 'none';
-          document.getElementById('profTitle').textContent = 'Администратор';
-          document.getElementById('profNick').textContent = 'ColalandAdmin';
-          document.getElementById('profWlNick').textContent = '—';
-          document.getElementById('profTwitchNick').textContent = '—';
-          document.getElementById('profRole').textContent = 'Создатель';
-          document.getElementById('profStatus').textContent = 'Владелец сайта';
-          document.getElementById('profStatus').className = 'status-badge';
-          renderAdminApps();
-        } else {
-          adminPanel.style.display = 'none';
-          wlFormCard.style.display = 'block';
-          document.getElementById('profTitle').textContent = currentUser.nick;
-          document.getElementById('profNick').textContent = currentUser.nick;
-          document.getElementById('profRole').textContent = 'Игрок';
+        document.getElementById('profTitle').textContent = currentUser.nick;
+        document.getElementById('profNick').textContent = currentUser.nick;
+        document.getElementById('profRole').textContent = 'Игрок';
 
-          const app = applications.find(a => a.user.toLowerCase() === currentUser.nick.toLowerCase());
-          const st = app ? app.status : 'Не подана';
-          const badge = document.getElementById('profStatus');
-          badge.textContent = st;
-          
-          if (app) {
-            document.getElementById('profWlNick').textContent = app.nick;
-            document.getElementById('profTwitchNick').textContent = app.twitch;
+        const app = getMyApp();
+        const decision = getDecision();
+        const badge = document.getElementById('profStatus');
+        const reasonBox = document.getElementById('profReason');
+        const wlFormCard = document.getElementById('wlFormCard');
+        reasonBox.style.display = 'none';
+        wlFormCard.style.display = 'block';
+
+        if (decision && decision.status === 'accepted') {
+          badge.textContent = 'Принят';
+          badge.className = 'status-badge';
+          wlFormCard.style.display = 'none';
+          reasonBox.style.display = 'block';
+          reasonBox.style.background = 'rgba(46,213,115,0.15)';
+          reasonBox.style.color = '#2ed573';
+          reasonBox.style.border = '1px solid #2ed573';
+          reasonBox.textContent = '✅ Ваша заявка одобрена! Вы добавлены в вайтлист — можно заходить на сервер.';
+        } else if (decision && decision.status === 'rejected') {
+          badge.textContent = 'Отказано';
+          badge.className = 'status-badge rejected';
+          reasonBox.style.display = 'block';
+          reasonBox.style.background = 'rgba(245,90,90,0.15)';
+          reasonBox.style.color = '#f55a5a';
+          reasonBox.style.border = '1px solid #f55a5a';
+          reasonBox.textContent = '❌ Причина отказа: ' + (decision.reason || 'не указана') + '. Вы можете исправить данные и подать заявку заново.';
+        } else {
+          badge.textContent = app ? 'На рассмотрении' : 'Не подана';
+          badge.className = 'status-badge pending';
+        }
+
+        // не затираем текст, который игрок сейчас печатает в форме
+        const typing = !!(document.activeElement && wlFormCard.contains(document.activeElement));
+        if (app) {
+          document.getElementById('profWlNick').textContent = app.nick;
+          document.getElementById('profTwitchNick').textContent = app.twitch;
+          if (!typing) {
             document.getElementById('wlNickInput').value = app.nick;
             document.getElementById('wlTwitchInput').value = app.twitch;
             document.getElementById('wlText').value = app.reason;
-          } else {
-            document.getElementById('profWlNick').textContent = 'Не указан';
-            document.getElementById('profTwitchNick').textContent = 'Не указан';
+          }
+        } else {
+          document.getElementById('profWlNick').textContent = 'Не указан';
+          document.getElementById('profTwitchNick').textContent = 'Не указан';
+          if (!typing) {
             document.getElementById('wlNickInput').value = currentUser.nick;
             document.getElementById('wlTwitchInput').value = '';
             document.getElementById('wlText').value = '';
-          }
-
-          if (st === 'Одобрено') {
-            badge.className = 'status-badge';
-          } else if (st === 'Отклонено') {
-            badge.className = 'status-badge rejected';
-          } else {
-            badge.className = 'status-badge pending';
           }
         }
       } else {
@@ -272,6 +384,7 @@
       } else {
         document.getElementById('tabProfileBtn').classList.add('active');
         document.getElementById('profileSection').classList.add('active');
+        loadDecisions();
       }
     }
 
@@ -320,14 +433,7 @@
       const nick = document.getElementById('inputNick').value.trim();
       const pass = document.getElementById('inputPass').value.trim();
 
-      if (nick.toLowerCase() === 'colalandadmin') {
-        if (pass === 'blackgarden1278') {
-          currentUser = { nick: 'ColalandAdmin', isAdmin: true };
-        } else {
-          alert('❌ Неверный пароль администратора!');
-          return;
-        }
-      } else if (isRegisterMode) {
+      if (isRegisterMode) {
         const passConfirm = document.getElementById('inputPassConfirm').value.trim();
         if (pass !== passConfirm) {
           alert('❌ Пароли не совпадают!');
@@ -339,36 +445,47 @@
           return;
         }
         registeredUsers.push({ nick, pass });
-        localStorage.setItem('colaland_reg_users', JSON.stringify(registeredUsers));
-        currentUser = { nick: nick, isAdmin: false };
+        store.setItem('colaland_reg_users', JSON.stringify(registeredUsers));
+        currentUser = { nick: nick };
       } else {
         const user = registeredUsers.find(u => u.nick.toLowerCase() === nick.toLowerCase() && u.pass === pass);
         if (!user) {
           alert('❌ Неверный ник или пароль, либо аккаунт не зарегистрирован!');
           return;
         }
-        currentUser = { nick: user.nick, isAdmin: false };
+        currentUser = { nick: user.nick };
       }
 
-      localStorage.setItem('colaland_user', JSON.stringify(currentUser));
-      
-      // Закрываем модальное окно принудительно
+      store.setItem('colaland_user', JSON.stringify(currentUser));
       document.getElementById('authModal').style.display = 'none';
-      
       updateUI();
       switchTab('profile');
     }
 
     function logout() {
       currentUser = null;
-      localStorage.removeItem('colaland_user');
+      store.removeItem('colaland_user');
       updateUI();
       switchTab('rules');
     }
 
-    function submitWL(e) {
+    function showWlMsg(text, kind) {
+      const box = document.getElementById('wlMsg');
+      const colors = {
+        ok:   ['rgba(46,213,115,0.15)', '#2ed573'],
+        warn: ['rgba(255,159,67,0.15)', '#ff9f43'],
+        err:  ['rgba(245,90,90,0.15)',  '#f55a5a']
+      }[kind];
+      box.style.display = 'block';
+      box.style.background = colors[0];
+      box.style.color = colors[1];
+      box.style.border = '1px solid ' + colors[1];
+      box.textContent = text;
+    }
+
+    async function submitWL(e) {
       e.preventDefault();
-      if (!currentUser || currentUser.isAdmin) return;
+      if (!currentUser) return;
 
       const wlNick = document.getElementById('wlNickInput').value.trim();
       const twitchNick = document.getElementById('wlTwitchInput').value.trim();
@@ -376,67 +493,48 @@
       const btn = document.getElementById('wlSubmitBtn');
 
       if (!wlNick || !twitchNick) {
-        alert('❌ Заполните ник в Майнкрафте и Twitch!');
+        showWlMsg('❌ Заполните ник в Майнкрафте и Twitch!', 'err');
         return;
       }
 
       const idx = applications.findIndex(a => a.user.toLowerCase() === currentUser.nick.toLowerCase());
-      
-      if (idx >= 0) {
-        applications[idx] = { user: currentUser.nick, nick: wlNick, twitch: twitchNick, reason: reason, status: 'На рассмотрении' };
-      } else {
-        applications.push({ user: currentUser.nick, nick: wlNick, twitch: twitchNick, reason: reason, status: 'На рассмотрении' });
-      }
-
-      localStorage.setItem('colaland_apps', JSON.stringify(applications));
-      btn.textContent = 'Отправлено! ✅';
-      
-      setTimeout(() => { btn.textContent = 'Отправить заявку'; }, 3000);
-      updateUI();
-      alert('✅ Заявка успешно отправлена!');
-    }
-
-    function renderAdminApps() {
-      const container = document.getElementById('appsContainer');
-      container.innerHTML = '';
-
-      if (applications.length === 0) {
-        container.innerHTML = '<p style="color: #8d8d99;">Заявок пока нет.</p>';
+      const dec = getDecision();
+      if (dec && dec.status === 'accepted') {
+        showWlMsg('✅ Ваша заявка уже одобрена!', 'ok');
         return;
       }
 
-      applications.forEach((app, index) => {
-        const div = document.createElement('div');
-        div.style.cssText = 'background: #18181b; padding: 14px; margin-bottom: 12px; border: 1px solid #27272a; border-radius: 8px;';
-        
-        let badgeClass = 'status-badge pending';
-        if (app.status === 'Одобрено') badgeClass = 'status-badge';
-        if (app.status === 'Отклонено') badgeClass = 'status-badge rejected';
+      const app = { user: currentUser.nick, nick: wlNick, twitch: twitchNick, reason: reason, status: 'На рассмотрении', submittedAt: Date.now() };
 
-        div.innerHTML = `
-          <div style="display: flex; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
-            <span>Аккаунт: <b>${app.user}</b> | Майн: <b style="color: #ff9f43;">${app.nick}</b> | Твич: <b style="color: #9146FF;">${app.twitch}</b></span>
-            <span class="${badgeClass}">${app.status}</span>
-          </div>
-          <p style="font-size: 13px; color: #8d8d99; margin-bottom: 4px;">Планы на сервере:</p>
-          <p style="font-size: 14px; color: #c4c4cc; margin-bottom: 12px;">${app.reason}</p>
-          <div>
-            <button class="btn-action" style="background: #2ed573; color: #000;" onclick="setAppStatus(${index}, 'Одобрено')">Одобрить</button>
-            <button class="btn-action" style="background: #f55a5a; color: #fff;" onclick="setAppStatus(${index}, 'Отклонено')">Отклонить</button>
-          </div>
-        `;
-        container.appendChild(div);
-      });
-    }
+      btn.disabled = true;
+      btn.textContent = 'Отправка...';
 
-    function setAppStatus(idx, status) {
-      applications[idx].status = status;
-      localStorage.setItem('colaland_apps', JSON.stringify(applications));
-      renderAdminApps();
+      let sent = false;
+      try {
+        sent = await sendToDiscord(app);
+      } catch (err) {
+        sent = false;
+      }
+
+      if (idx >= 0) applications[idx] = app; else applications.push(app);
+      store.setItem('colaland_apps', JSON.stringify(applications));
+
+      btn.disabled = false;
+      btn.textContent = sent ? 'Отправлено! ✅' : 'Сохранено локально';
+      setTimeout(() => { btn.textContent = 'Отправить заявку'; }, 3000);
       updateUI();
+
+      if (sent) {
+        showWlMsg('✅ Заявка успешно отправлена администрации! Статус: «На рассмотрении».', 'ok');
+      } else if (!WEBHOOK_URL) {
+        showWlMsg('⚠️ Заявка сохранена только в этом браузере: владелец сайта ещё не указал WEBHOOK_URL в коде, поэтому администрация её не получила.', 'warn');
+      } else {
+        showWlMsg('❌ Не удалось отправить заявку. Попробуйте позже.', 'err');
+      }
     }
 
     updateUI();
+    loadDecisions();
   </script>
 </body>
 </html>

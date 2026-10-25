@@ -349,43 +349,28 @@
     registeredUsers = registeredUsers.filter(u => u && typeof u.nick === 'string' && typeof u.pass === 'string');
     let isRegisterMode = false;
 
-    // ====== УКАЗАННЫЙ ВЕБХУК DISCORD ======
-    const WEBHOOK_URL = 'https://discord.com/api/webhooks/1563894710647521381/AwpFiLtHt6LYlzLSpMLnfkoMupD8vLl08KWTqJT1svl6EjFQ9iuvin1NIxJ9ZdAQwg81';
+    // ====== WORKER (приём заявок и решения админов) ======
+const WORKER_URL = 'https://colaland.nariman2024n.workers.dev';
 
     function escapeHtml(str) {
       return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
     async function sendToDiscord(app) {
-      if (!WEBHOOK_URL) return false;
-      const payload = {
-        embeds: [{
-          title: "📝 Новая заявка в WhiteList",
-          color: 16752451, // Оранжевый цвет #ff9f43
-          fields: [
-            { name: "Аккаунт на сайте", value: app.user, inline: true },
-            { name: "Ник в Minecraft", value: app.nick, inline: true },
-            { name: "Ник на Twitch", value: app.twitch, inline: true },
-            { name: "Что будет делать на сервере", value: app.reason }
-          ],
-          timestamp: new Date().toISOString()
-        }]
-      };
-
-      const res = await fetch(WEBHOOK_URL, {
+      const res = await fetch(WORKER_URL + '/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ user: app.user, nick: app.nick, twitch: app.twitch, reason: app.reason })
       });
-      return res.ok || res.status === 204;
+      return res.ok;
     }
 
-    // ====== РЕШЕНИЯ АДМИНИСТРАЦИИ (файл decisions.json рядом с сайтом) ======
+    // ====== РЕШЕНИЯ АДМИНИСТРАЦИИ (берутся из Worker) ======
     let decisions = {};
 
     async function loadDecisions() {
       try {
-        const res = await fetch('decisions.json?t=' + Date.now(), { cache: 'no-store' });
+        const res = await fetch(WORKER_URL + '/decisions?t=' + Date.now(), { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           const next = {};
@@ -413,7 +398,7 @@
         if (c && (c.status === 'accepted' || c.status === 'rejected')) { d = c; break; }
       }
       if (!d) return null;
-      if (app && app.submittedAt && d.date && String(d.date) < isoDay(app.submittedAt)) return null;
+      if (app && app.submittedAt && d.ts && Number(d.ts) < app.submittedAt) return null;
       return d;
     }
 

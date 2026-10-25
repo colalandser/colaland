@@ -333,8 +333,6 @@
     let applications = readJSON('colaland_apps', []);
     let registeredUsers = readJSON('colaland_reg_users', []);
 
-    // Чистим данные от старых версий сайта: битые записи без нужных полей выбрасываем,
-    // иначе они ломают весь скрипт (ошибка toLowerCase of undefined).
     if (!currentUser || typeof currentUser.nick !== 'string' || currentUser.isAdmin) currentUser = null;
     if (!Array.isArray(applications)) applications = [];
     applications = applications
@@ -351,23 +349,35 @@
     registeredUsers = registeredUsers.filter(u => u && typeof u.nick === 'string' && typeof u.pass === 'string');
     let isRegisterMode = false;
 
-    // ====== НАСТРОЙКА ОТПРАВКИ ЗАЯВОК ======
-    // Вставьте сюда адрес вашего Cloudflare Worker (например https://colaland.ваше-имя.workers.dev).
-    // Заявки уходят на него, а он публикует их в Discord с кнопками «Принять» / «Отказать».
-    const WORKER_URL = 'https://colaland.nariman2024n.workers.dev';
+    // ====== УКАЗАННЫЙ ВЕБХУК DISCORD ======
+    const WEBHOOK_URL = 'https://discord.com/api/webhooks/1563894710647521381/AwpFiLtHt6LYlzLSpMLnfkoMupD8vLl08KWTqJT1svl6EjFQ9iuvin1NIxJ9ZdAQwg81';
 
     function escapeHtml(str) {
       return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
     async function sendToDiscord(app) {
-      if (!WORKER_URL) return false;
-      const res = await fetch(WORKER_URL.replace(/\/+$/, '') + '/apply', {
+      if (!WEBHOOK_URL) return false;
+      const payload = {
+        embeds: [{
+          title: "📝 Новая заявка в WhiteList",
+          color: 16752451, // Оранжевый цвет #ff9f43
+          fields: [
+            { name: "Аккаунт на сайте", value: app.user, inline: true },
+            { name: "Ник в Minecraft", value: app.nick, inline: true },
+            { name: "Ник на Twitch", value: app.twitch, inline: true },
+            { name: "Что будет делать на сервере", value: app.reason }
+          ],
+          timestamp: new Date().toISOString()
+        }]
+      };
+
+      const res = await fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: app.user, nick: app.nick, twitch: app.twitch, reason: app.reason })
+        body: JSON.stringify(payload)
       });
-      return res.ok;
+      return res.ok || res.status === 204;
     }
 
     // ====== РЕШЕНИЯ АДМИНИСТРАЦИИ (файл decisions.json рядом с сайтом) ======
@@ -375,19 +385,14 @@
 
     async function loadDecisions() {
       try {
-        let res = null;
-        if (WORKER_URL) {
-          // через Worker: решение видно сразу, без задержки GitHub Pages
-          try { res = await fetch(WORKER_URL.replace(/\/+$/, '') + '/decisions', { cache: 'no-store' }); } catch (e) { res = null; }
-        }
-        if (!res || !res.ok) res = await fetch('decisions.json?t=' + Date.now(), { cache: 'no-store' });
+        const res = await fetch('decisions.json?t=' + Date.now(), { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           const next = {};
           Object.keys(data).forEach(k => { if (k.charAt(0) !== '_') next[k.toLowerCase()] = data[k]; });
           decisions = next;
         }
-      } catch (e) { /* файл недоступен (например, сайт открыт с компьютера) — остаёмся на локальном статусе */ }
+      } catch (e) { /* файл недоступен — остаёмся на локальном статусе */ }
       updateUI();
     }
 
@@ -401,7 +406,6 @@
     function getDecision() {
       if (!currentUser) return null;
       const app = getMyApp();
-      // ищем решение сначала по нику в Minecraft из заявки, затем по нику аккаунта на сайте
       const keys = [app && app.nick, currentUser.nick].filter(Boolean).map(k => k.toLowerCase());
       let d = null;
       for (const key of keys) {
@@ -409,7 +413,6 @@
         if (c && (c.status === 'accepted' || c.status === 'rejected')) { d = c; break; }
       }
       if (!d) return null;
-      // если игрок подал заявку заново после даты решения — старое решение не показываем
       if (app && app.submittedAt && d.date && String(d.date) < isoDay(app.submittedAt)) return null;
       return d;
     }
@@ -462,7 +465,6 @@
           badge.className = 'status-badge pending';
         }
 
-        // не затираем текст, который игрок сейчас печатает в форме
         const typing = !!(document.activeElement && wlFormCard.contains(document.activeElement));
         if (app) {
           document.getElementById('profWlNick').textContent = app.nick;
@@ -668,18 +670,15 @@
       updateUI();
 
       if (sent) {
-        showWlMsg('✅ Заявка успешно отправлена администрации! Статус: «На рассмотрении».', 'ok');
-      } else if (!WORKER_URL) {
-        showWlMsg('⚠️ Заявка сохранена только в этом браузере: владелец сайта ещё не указал WORKER_URL в коде, поэтому администрация её не получила.', 'warn');
+        showWlMsg('✅ Заявка успешно отправлена в Discord! Статус: «На рассмотрении».', 'ok');
       } else {
-        showWlMsg('❌ Не удалось отправить заявку. Попробуйте позже.', 'err');
+        showWlMsg('❌ Не удалось отправить заявку в Discord. Проверьте подключение или настройки вебхука.', 'err');
       }
     }
 
     updateUI();
     loadDecisions();
 
-    // Статус обновляется сам: раз в 15 секунд и при возвращении на вкладку — перезагружать страницу не нужно
     setInterval(() => { if (currentUser && !document.hidden) loadDecisions(); }, 15000);
     document.addEventListener('visibilitychange', () => { if (currentUser && !document.hidden) loadDecisions(); });
   </script>

@@ -418,6 +418,8 @@
       input.value = input.value.replace(/[^a-zA-Z0-9_]/g, '');
     }
 
+    let prefilledFor = null;
+
     function updateUI() {
       const guestBlock = document.getElementById('guestBlock');
       const userBlock = document.getElementById('userBlock');
@@ -438,50 +440,50 @@
         const reasonBox = document.getElementById('profReason');
         const wlFormCard = document.getElementById('wlFormCard');
         reasonBox.style.display = 'none';
-        wlFormCard.style.display = 'block';
+        // форма показывается, только пока заявка ещё не отправлена
+        wlFormCard.style.display = (app || decision) ? 'none' : 'block';
+
+        const showBox = (bg, color, text) => {
+          reasonBox.style.display = 'block';
+          reasonBox.style.background = bg;
+          reasonBox.style.color = color;
+          reasonBox.style.border = '1px solid ' + color;
+          reasonBox.textContent = text;
+        };
 
         if (decision && decision.status === 'accepted') {
           badge.textContent = 'Принят';
           badge.className = 'status-badge';
-          wlFormCard.style.display = 'none';
-          reasonBox.style.display = 'block';
-          reasonBox.style.background = 'rgba(46,213,115,0.15)';
-          reasonBox.style.color = '#2ed573';
-          reasonBox.style.border = '1px solid #2ed573';
-          reasonBox.textContent = '✅ Ваша заявка одобрена! Вы добавлены в вайтлист — можно заходить на сервер.';
+          showBox('rgba(46,213,115,0.15)', '#2ed573', '✅ Ваша заявка одобрена! Вы добавлены в вайтлист — можно заходить на сервер.');
         } else if (decision && decision.status === 'rejected') {
           badge.textContent = 'Отказано';
           badge.className = 'status-badge rejected';
-          reasonBox.style.display = 'block';
-          reasonBox.style.background = 'rgba(245,90,90,0.15)';
-          reasonBox.style.color = '#f55a5a';
-          reasonBox.style.border = '1px solid #f55a5a';
-          reasonBox.textContent = '❌ Причина отказа: ' + (decision.reason || 'не указана') + '. Вы можете исправить данные и подать заявку заново.';
+          showBox('rgba(245,90,90,0.15)', '#f55a5a', '❌ Причина отказа: ' + (decision.reason || 'не указана') + '. Повторно подать заявку нельзя. Если считаете отказ ошибкой, создайте тикет в Discord.');
+        } else if (app) {
+          badge.textContent = 'На рассмотрении';
+          badge.className = 'status-badge pending';
+          showBox('rgba(255,159,67,0.15)', '#ff9f43', '📨 Заявка отправлена администрации и ждёт решения. Статус обновится здесь сам, повторно отправлять заявку не нужно.');
         } else {
-          badge.textContent = app ? 'На рассмотрении' : 'Не подана';
+          badge.textContent = 'Не подана';
           badge.className = 'status-badge pending';
         }
 
-        // не затираем текст, который игрок сейчас печатает в форме
-        const typing = !!(document.activeElement && wlFormCard.contains(document.activeElement));
         if (app) {
           document.getElementById('profWlNick').textContent = app.nick;
           document.getElementById('profTwitchNick').textContent = app.twitch;
-          if (!typing) {
-            document.getElementById('wlNickInput').value = app.nick;
-            document.getElementById('wlTwitchInput').value = app.twitch;
-            document.getElementById('wlText').value = app.reason;
-          }
         } else {
           document.getElementById('profWlNick').textContent = 'Не указан';
           document.getElementById('profTwitchNick').textContent = 'Не указан';
-          if (!typing) {
+          // поля формы заполняем только один раз после входа, чтобы не стереть то, что игрок печатает
+          if (prefilledFor !== currentUser.nick) {
             document.getElementById('wlNickInput').value = currentUser.nick;
             document.getElementById('wlTwitchInput').value = '';
             document.getElementById('wlText').value = '';
+            prefilledFor = currentUser.nick;
           }
         }
       } else {
+        prefilledFor = null;
         navAuthBtn.textContent = 'Войти';
         guestBlock.style.display = 'block';
         userBlock.style.display = 'none';
@@ -626,9 +628,18 @@
       box.textContent = text;
     }
 
+    let isSubmitting = false;
+
     async function submitWL(e) {
       e.preventDefault();
-      if (!currentUser) return;
+      if (!currentUser || isSubmitting) return;
+
+      // Заявку можно отправить только один раз
+      if (getMyApp() || getDecision()) {
+        showWlMsg('⚠️ Вы уже отправляли заявку. Повторно подать её нельзя.', 'warn');
+        updateUI();
+        return;
+      }
 
       const wlNick = document.getElementById('wlNickInput').value.trim();
       const twitchNick = document.getElementById('wlTwitchInput').value.trim();
@@ -640,15 +651,14 @@
         return;
       }
 
-      const idx = applications.findIndex(a => a.user.toLowerCase() === currentUser.nick.toLowerCase());
-      const dec = getDecision();
-      if (dec && dec.status === 'accepted') {
-        showWlMsg('✅ Ваша заявка уже одобрена!', 'ok');
+      if (!WORKER_URL) {
+        showWlMsg('⚠️ Отправка заявок ещё не настроена владельцем сайта (не указан WORKER_URL).', 'warn');
         return;
       }
 
       const app = { user: currentUser.nick, nick: wlNick, twitch: twitchNick, reason: reason, status: 'На рассмотрении', submittedAt: Date.now() };
 
+      isSubmitting = true;
       btn.disabled = true;
       btn.textContent = 'Отправка...';
 
@@ -659,21 +669,19 @@
         sent = false;
       }
 
-      if (idx >= 0) applications[idx] = app; else applications.push(app);
-      store.setItem('colaland_apps', JSON.stringify(applications));
-
+      isSubmitting = false;
       btn.disabled = false;
-      btn.textContent = sent ? 'Отправлено! ✅' : 'Сохранено локально';
-      setTimeout(() => { btn.textContent = 'Отправить заявку'; }, 3000);
-      updateUI();
+      btn.textContent = 'Отправить заявку';
 
-      if (sent) {
-        showWlMsg('✅ Заявка успешно отправлена администрации! Статус: «На рассмотрении».', 'ok');
-      } else if (!WORKER_URL) {
-        showWlMsg('⚠️ Заявка сохранена только в этом браузере: владелец сайта ещё не указал WORKER_URL в коде, поэтому администрация её не получила.', 'warn');
-      } else {
-        showWlMsg('❌ Не удалось отправить заявку. Попробуйте позже.', 'err');
+      if (!sent) {
+        // не сохраняем: заявка не дошла, игрок сможет попробовать ещё раз
+        showWlMsg('❌ Не удалось отправить заявку. Попробуйте ещё раз чуть позже.', 'err');
+        return;
       }
+
+      applications.push(app);
+      store.setItem('colaland_apps', JSON.stringify(applications));
+      updateUI();
     }
 
     updateUI();

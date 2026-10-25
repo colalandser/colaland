@@ -18,13 +18,25 @@
     
     .profile-header-btn { background: #202024; border: 1px solid #29292e; color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
     
-    main { max-width: 800px; width: 100%; margin: 40px auto; padding: 0 20px; flex: 1; }
+    main { max-width: 900px; width: 100%; margin: 40px auto; padding: 0 20px; flex: 1; }
     .section { display: none; }
     .section.active { display: block; }
     
     .card { background: #121214; border: 1px solid #202024; border-radius: 12px; padding: 24px; margin-bottom: 16px; }
     .rule-item { background: #18181b; padding: 14px; border-radius: 8px; margin-top: 10px; font-size: 14px; line-height: 1.5; border: 1px solid #27272a; }
     
+    /* Медиа карточки */
+    .media-card { background: #121214; border: 1px solid #202024; border-radius: 12px; overflow: hidden; margin-bottom: 24px; }
+    .media-header { padding: 16px 20px; background: #18181b; border-bottom: 1px solid #202024; display: flex; justify-content: space-between; align-items: center; }
+    .media-user { display: flex; align-items: center; gap: 12px; }
+    .media-avatar { width: 42px; height: 42px; border-radius: 50%; background: #9146FF; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; }
+    .media-info h3 { font-size: 16px; color: #fff; margin-bottom: 2px; }
+    .media-info p { font-size: 12px; color: #a8a8b3; }
+    .twitch-badge { background: #9146FF; color: #fff; font-size: 12px; padding: 4px 10px; border-radius: 20px; text-decoration: none; font-weight: bold; }
+    .twitch-badge:hover { opacity: 0.9; }
+    .player-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000; }
+    .player-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+
     .status-badge { background: rgba(46, 213, 115, 0.15); color: #2ed573; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 13px; border: 1px solid rgba(46, 213, 115, 0.3); }
     .status-badge.pending { background: rgba(255, 159, 67, 0.15); color: #ff9f43; border-color: rgba(255, 159, 67, 0.3); }
     .status-badge.rejected { background: rgba(245, 90, 90, 0.15); color: #f55a5a; border-color: rgba(245, 90, 90, 0.3); }
@@ -35,7 +47,6 @@
     .input-group label { display: block; color: #a8a8b3; font-size: 12px; margin-bottom: 6px; text-transform: uppercase; font-weight: 600; }
     .input-group input, .input-group textarea { width: 100%; background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 12px; color: #fff; outline: none; }
     .submit-btn { width: 100%; background: #ff9f43; color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; }
-    .btn-action { padding: 8px 16px; border-radius: 6px; border: none; font-weight: 700; cursor: pointer; margin-right: 8px; }
     .switch-link { color: #ff9f43; cursor: pointer; font-size: 13px; text-align: center; margin-top: 12px; display: block; }
   </style>
 </head>
@@ -48,6 +59,7 @@
     </div>
     <nav>
       <button class="nav-btn active" id="tabRulesBtn" onclick="switchTab('rules')">Правила</button>
+      <button class="nav-btn" id="tabMediaBtn" onclick="switchTab('media')">Медиа</button>
       <button class="nav-btn" id="tabMapBtn" onclick="switchTab('map')">Карта</button>
       <button class="nav-btn" id="tabProfileBtn" onclick="switchTab('profile')">Вайтлист / Профиль</button>
     </nav>
@@ -96,6 +108,31 @@
       </div>
     </section>
 
+    <!-- МЕДИА -->
+    <section id="mediaSection" class="section">
+      <h1 style="margin-bottom: 8px; font-size: 32px;">Медиа Colaland</h1>
+      <p style="color: #8d8d99; margin-bottom: 24px;">Стримеры и контент-мейкеры нашего проекта.</p>
+
+      <div class="media-card">
+        <div class="media-header">
+          <div class="media-user">
+            <div class="media-avatar">C</div>
+            <div class="media-info">
+              <h3>colaventrix</h3>
+              <p>Twitch Стример</p>
+            </div>
+          </div>
+          <a href="https://www.twitch.tv/colaventrix" target="_blank" class="twitch-badge">Открыть на Twitch ↗</a>
+        </div>
+        <div class="player-container">
+          <iframe 
+            src="https://player.twitch.tv/?channel=colaventrix&parent=localhost&parent=127.0.0.1&parent=colalend.tilda.ws" 
+            allowfullscreen>
+          </iframe>
+        </div>
+      </div>
+    </section>
+
     <!-- КАРТА -->
     <section id="mapSection" class="section">
       <div class="card" style="text-align: center; padding: 64px 20px;">
@@ -106,17 +143,13 @@
 
     <!-- ПРОФИЛЬ / ВАЙТЛИСТ -->
     <section id="profileSection" class="section">
-      <!-- Закрыто -->
       <div id="guestBlock" class="card" style="text-align: center; padding: 48px 20px;">
         <h2>🔒 Доступ ограничен</h2>
         <p style="color: #8d8d99; margin: 12px 0 24px 0;">Войдите или зарегистрируйтесь, чтобы подать заявку в WhiteList.</p>
         <button class="submit-btn" style="max-width: 220px; margin: 0 auto;" onclick="openAuthModal('login')">Войти</button>
       </div>
 
-      <!-- Открыто -->
       <div id="userBlock" style="display: none;">
-        
-        <!-- Профиль -->
         <div class="card">
           <h2 id="profTitle" style="margin-bottom: 16px;">Профиль</h2>
           <p style="margin-bottom: 8px; color: #8d8d99;">Статус заявки: <span class="status-badge pending" id="profStatus">Не подана</span></p>
@@ -128,7 +161,6 @@
           <button style="background: #202024; color: #f55a5a; border: 1px solid #29292e; padding: 8px 16px; border-radius: 6px; cursor: pointer;" onclick="logout()">Выйти</button>
         </div>
 
-        <!-- Форма заявки -->
         <div class="card" id="wlFormCard">
           <h3 style="margin-bottom: 6px;">Подать заявку в WhiteList</h3>
           <p style="color: #8d8d99; font-size: 14px; margin-bottom: 16px;">Заполните данные для проверки администрацией.</p>
@@ -149,7 +181,6 @@
             <div id="wlMsg" style="display:none; margin-top:12px; padding:12px; border-radius:8px; font-size:14px; line-height:1.4;"></div>
           </form>
         </div>
-
       </div>
     </section>
   </main>
@@ -181,8 +212,6 @@
   </div>
 
   <script>
-    // Безопасное хранилище: если браузер блокирует localStorage (предпросмотр, iframe, приватный режим),
-    // данные хранятся в памяти до перезагрузки страницы, и сайт всё равно работает.
     const store = (function () {
       try {
         const t = '__colaland_test__';
@@ -207,8 +236,6 @@
     let applications = readJSON('colaland_apps', []);
     let registeredUsers = readJSON('colaland_reg_users', []);
 
-    // Чистим данные от старых версий сайта: битые записи без нужных полей выбрасываем,
-    // иначе они ломают весь скрипт (ошибка toLowerCase of undefined).
     if (!currentUser || typeof currentUser.nick !== 'string' || currentUser.isAdmin) currentUser = null;
     if (!Array.isArray(applications)) applications = [];
     applications = applications
@@ -225,13 +252,26 @@
     registeredUsers = registeredUsers.filter(u => u && typeof u.nick === 'string' && typeof u.pass === 'string');
     let isRegisterMode = false;
 
-    // ====== НАСТРОЙКА ОТПРАВКИ ЗАЯВОК ======
-    // Вставьте сюда адрес вашего Cloudflare Worker (например https://colaland.ваше-имя.workers.dev).
-    // Заявки уходят на него, а он публикует их в Discord с кнопками «Принять» / «Отказать».
     const WORKER_URL = 'https://colaland.nariman2024n.workers.dev';
 
-    function escapeHtml(str) {
-      return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    function switchTab(tab) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+
+      if (tab === 'rules') {
+        document.getElementById('tabRulesBtn').classList.add('active');
+        document.getElementById('rulesSection').classList.add('active');
+      } else if (tab === 'media') {
+        document.getElementById('tabMediaBtn').classList.add('active');
+        document.getElementById('mediaSection').classList.add('active');
+      } else if (tab === 'map') {
+        document.getElementById('tabMapBtn').classList.add('active');
+        document.getElementById('mapSection').classList.add('active');
+      } else {
+        document.getElementById('tabProfileBtn').classList.add('active');
+        document.getElementById('profileSection').classList.add('active');
+        loadDecisions();
+      }
     }
 
     async function sendToDiscord(app) {
@@ -244,7 +284,6 @@
       return res.ok;
     }
 
-    // ====== РЕШЕНИЯ АДМИНИСТРАЦИИ (файл decisions.json рядом с сайтом) ======
     let decisions = {};
 
     async function loadDecisions() {
@@ -256,7 +295,7 @@
           Object.keys(data).forEach(k => { if (k.charAt(0) !== '_') next[k.toLowerCase()] = data[k]; });
           decisions = next;
         }
-      } catch (e) { /* файл недоступен (например, сайт открыт с компьютера) — остаёмся на локальном статусе */ }
+      } catch (e) {}
       updateUI();
     }
 
@@ -270,7 +309,6 @@
     function getDecision() {
       if (!currentUser) return null;
       const app = getMyApp();
-      // ищем решение сначала по нику в Minecraft из заявки, затем по нику аккаунта на сайте
       const keys = [app && app.nick, currentUser.nick].filter(Boolean).map(k => k.toLowerCase());
       let d = null;
       for (const key of keys) {
@@ -278,7 +316,6 @@
         if (c && (c.status === 'accepted' || c.status === 'rejected')) { d = c; break; }
       }
       if (!d) return null;
-      // если игрок подал заявку заново после даты решения — старое решение не показываем
       if (app && app.submittedAt && d.date && String(d.date) < isoDay(app.submittedAt)) return null;
       return d;
     }
@@ -331,7 +368,6 @@
           badge.className = 'status-badge pending';
         }
 
-        // не затираем текст, который игрок сейчас печатает в форме
         const typing = !!(document.activeElement && wlFormCard.contains(document.activeElement));
         if (app) {
           document.getElementById('profWlNick').textContent = app.nick;
@@ -354,23 +390,6 @@
         navAuthBtn.textContent = 'Войти';
         guestBlock.style.display = 'block';
         userBlock.style.display = 'none';
-      }
-    }
-
-    function switchTab(tab) {
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-
-      if (tab === 'rules') {
-        document.getElementById('tabRulesBtn').classList.add('active');
-        document.getElementById('rulesSection').classList.add('active');
-      } else if (tab === 'map') {
-        document.getElementById('tabMapBtn').classList.add('active');
-        document.getElementById('mapSection').classList.add('active');
-      } else {
-        document.getElementById('tabProfileBtn').classList.add('active');
-        document.getElementById('profileSection').classList.add('active');
-        loadDecisions();
       }
     }
 

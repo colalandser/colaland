@@ -18,44 +18,24 @@
     
     .profile-header-btn { background: #202024; border: 1px solid #29292e; color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
     
-    main { max-width: 1000px; width: 100%; margin: 40px auto; padding: 0 20px; flex: 1; }
+    main { max-width: 800px; width: 100%; margin: 40px auto; padding: 0 20px; flex: 1; }
     .section { display: none; }
     .section.active { display: block; }
     
     .card { background: #121214; border: 1px solid #202024; border-radius: 12px; padding: 24px; margin-bottom: 16px; }
     .rule-item { background: #18181b; padding: 14px; border-radius: 8px; margin-top: 10px; font-size: 14px; line-height: 1.5; border: 1px solid #27272a; }
     
-    /* Сетка стримеров в стиле ПТУ */
-    .streamers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 20px; }
-    .streamer-card { background: #121214; border: 1px solid #202024; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; position: relative; z-index: 2; }
-    .streamer-card.online { border-color: #2ed573; box-shadow: 0 0 15px rgba(46, 213, 115, 0.15); }
-    
-    .streamer-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .streamer-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: #202024; }
-    .streamer-name { font-weight: 700; font-size: 15px; color: #fff; word-break: break-all; }
-    
-    .badges-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
-    .badge-platform { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
-    .badge-twitch { background: #9146FF; color: #fff; }
-    .badge-online { background: rgba(46, 213, 115, 0.15); color: #2ed573; border: 1px solid rgba(46, 213, 115, 0.3); display: flex; align-items: center; gap: 4px; }
-    .badge-online::before { content: ''; width: 6px; height: 6px; background: #2ed573; border-radius: 50%; display: inline-block; }
-    .badge-offline { background: #202024; color: #8d8d99; }
-
-    .stream-info { font-size: 12px; color: #a8a8b3; margin-bottom: 14px; line-height: 1.4; }
-    
-    .streamer-btn { background: #18181b; border: 1px solid #27272a; color: #fff; text-align: center; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; display: block; position: relative; z-index: 5; cursor: pointer; transition: 0.2s; }
-    .streamer-btn:hover { background: #27272a; border-color: #3f3f46; }
-
     .status-badge { background: rgba(46, 213, 115, 0.15); color: #2ed573; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 13px; border: 1px solid rgba(46, 213, 115, 0.3); }
     .status-badge.pending { background: rgba(255, 159, 67, 0.15); color: #ff9f43; border-color: rgba(255, 159, 67, 0.3); }
     .status-badge.rejected { background: rgba(245, 90, 90, 0.15); color: #f55a5a; border-color: rgba(245, 90, 90, 0.3); }
     
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; }
-    .modal-card { background: #121214; border: 1px solid #202024; border-radius: 16px; padding: 32px; width: 100%; max-width: 380px; position: relative; z-index: 1001; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 100; }
+    .modal-card { background: #121214; border: 1px solid #202024; border-radius: 16px; padding: 32px; width: 100%; max-width: 380px; }
     .input-group { margin-bottom: 16px; }
     .input-group label { display: block; color: #a8a8b3; font-size: 12px; margin-bottom: 6px; text-transform: uppercase; font-weight: 600; }
     .input-group input, .input-group textarea { width: 100%; background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 12px; color: #fff; outline: none; }
     .submit-btn { width: 100%; background: #ff9f43; color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .btn-action { padding: 8px 16px; border-radius: 6px; border: none; font-weight: 700; cursor: pointer; margin-right: 8px; }
     .switch-link { color: #ff9f43; cursor: pointer; font-size: 13px; text-align: center; margin-top: 12px; display: block; }
   </style>
 </head>
@@ -68,7 +48,6 @@
     </div>
     <nav>
       <button class="nav-btn active" id="tabRulesBtn" onclick="switchTab('rules')">Правила</button>
-      <button class="nav-btn" id="tabMediaBtn" onclick="switchTab('media')">Медиа</button>
       <button class="nav-btn" id="tabMapBtn" onclick="switchTab('map')">Карта</button>
       <button class="nav-btn" id="tabProfileBtn" onclick="switchTab('profile')">Вайтлист / Профиль</button>
     </nav>
@@ -117,32 +96,6 @@
       </div>
     </section>
 
-    <!-- МЕДИА -->
-    <section id="mediaSection" class="section">
-      <h1 style="margin-bottom: 8px; font-size: 32px;">Медиа Colaland</h1>
-      <p style="color: #8d8d99; margin-bottom: 24px;">Стримеры и контент-мейкеры нашего проекта.</p>
-
-      <div class="streamers-grid">
-        <!-- Карточка colaventrix с твоей аватаркой -->
-        <div class="streamer-card online" id="streamerColaventrix">
-          <div>
-            <div class="streamer-top">
-              <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAABnJJREFUeNrsnVtP2zAQx+e2c5wYyQ4mJm285X//yX27L0iQ8q4v3e+sY38K80cE6K8334UCD+wJ1j4jUuk0rL2UUn+l+w3cR2lq858qUeZcSS4Jd5k/48HlT+Iu02S7E4B2gYd8hW6e8979F2hX2rA23y6m1h4Hl3m60bNf0gE20lK8Cknk25JqU9L8I0fA8vCjE0n6zM28w6uX2kQ5z3l/mN6yC70kF6xXhQ6z0lH3T7M3rI/gZ9C8iX6FpX/3sH2285PqHjX72Dfqg/274G3T0Gz8jC/8t3X32A398fM5Q4f6N1C9/tZ2e7E7T3I16J26j8Z/eY/rK2HlB9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y74G3oEw2K6u1hWwF/q50l7+j/fPq0vH/S3Zf4aT+o/kX+yW/692Z3O7E4F2pL+lXk37Nrf16h8P2n748X7W3+r/n696B2oO1K7d9XnC86h4p/eY/rK2HlC9Z3c9Nn36vXkffO0r26H71+qf2O1uR9Z356c9a/v+Qf3P34n8k1K8H7vFwU5L2mO/9a0pL2j8A1u86pP2N48hOub4L2u+5wX3V/0+v7wN503jFzR5K+Y7" alt="colaventrix">
-            </div>
-            <div class="streamer-name">colaventrix</div>
-          </div>
-          <div>
-            <div class="badges-row">
-              <span class="badge-platform badge-twitch">Twitch</span>
-              <span class="badge-platform badge-online" id="statusText">В эфире</span>
-            </div>
-            <div class="stream-info" id="streamDesc">Стримит на сервере Colaland!</div>
-          </div>
-          <a href="https://www.twitch.tv/colaventrix" target="_blank" class="streamer-btn">Смотреть стрим ↗</a>
-        </div>
-      </div>
-    </section>
-
     <!-- КАРТА -->
     <section id="mapSection" class="section">
       <div class="card" style="text-align: center; padding: 64px 20px;">
@@ -153,13 +106,17 @@
 
     <!-- ПРОФИЛЬ / ВАЙТЛИСТ -->
     <section id="profileSection" class="section">
+      <!-- Закрыто -->
       <div id="guestBlock" class="card" style="text-align: center; padding: 48px 20px;">
         <h2>🔒 Доступ ограничен</h2>
         <p style="color: #8d8d99; margin: 12px 0 24px 0;">Войдите или зарегистрируйтесь, чтобы подать заявку в WhiteList.</p>
         <button class="submit-btn" style="max-width: 220px; margin: 0 auto;" onclick="openAuthModal('login')">Войти</button>
       </div>
 
+      <!-- Открыто -->
       <div id="userBlock" style="display: none;">
+        
+        <!-- Профиль -->
         <div class="card">
           <h2 id="profTitle" style="margin-bottom: 16px;">Профиль</h2>
           <p style="margin-bottom: 8px; color: #8d8d99;">Статус заявки: <span class="status-badge pending" id="profStatus">Не подана</span></p>
@@ -171,6 +128,7 @@
           <button style="background: #202024; color: #f55a5a; border: 1px solid #29292e; padding: 8px 16px; border-radius: 6px; cursor: pointer;" onclick="logout()">Выйти</button>
         </div>
 
+        <!-- Форма заявки -->
         <div class="card" id="wlFormCard">
           <h3 style="margin-bottom: 6px;">Подать заявку в WhiteList</h3>
           <p style="color: #8d8d99; font-size: 14px; margin-bottom: 16px;">Заполните данные для проверки администрацией.</p>
@@ -191,6 +149,7 @@
             <div id="wlMsg" style="display:none; margin-top:12px; padding:12px; border-radius:8px; font-size:14px; line-height:1.4;"></div>
           </form>
         </div>
+
       </div>
     </section>
   </main>
@@ -222,6 +181,8 @@
   </div>
 
   <script>
+    // Безопасное хранилище: если браузер блокирует localStorage (предпросмотр, iframe, приватный режим),
+    // данные хранятся в памяти до перезагрузки страницы, и сайт всё равно работает.
     const store = (function () {
       try {
         const t = '__colaland_test__';
@@ -246,6 +207,8 @@
     let applications = readJSON('colaland_apps', []);
     let registeredUsers = readJSON('colaland_reg_users', []);
 
+    // Чистим данные от старых версий сайта: битые записи без нужных полей выбрасываем,
+    // иначе они ломают весь скрипт (ошибка toLowerCase of undefined).
     if (!currentUser || typeof currentUser.nick !== 'string' || currentUser.isAdmin) currentUser = null;
     if (!Array.isArray(applications)) applications = [];
     applications = applications
@@ -262,29 +225,26 @@
     registeredUsers = registeredUsers.filter(u => u && typeof u.nick === 'string' && typeof u.pass === 'string');
     let isRegisterMode = false;
 
-    // Установлено в пустую строку, чтобы заявки сохранялись локально без ошибок соединения
-    const WORKER_URL = '';
+    // ====== НАСТРОЙКА ОТПРАВКИ ЗАЯВОК ======
+    // Вставьте сюда адрес вашего Cloudflare Worker (например https://colaland.ваше-имя.workers.dev).
+    // Заявки уходят на него, а он публикует их в Discord с кнопками «Принять» / «Отказать».
+    const WORKER_URL = 'https://colaland.nariman2024n.workers.dev';
 
-    function switchTab(tab) {
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-
-      if (tab === 'rules') {
-        document.getElementById('tabRulesBtn').classList.add('active');
-        document.getElementById('rulesSection').classList.add('active');
-      } else if (tab === 'media') {
-        document.getElementById('tabMediaBtn').classList.add('active');
-        document.getElementById('mediaSection').classList.add('active');
-      } else if (tab === 'map') {
-        document.getElementById('tabMapBtn').classList.add('active');
-        document.getElementById('mapSection').classList.add('active');
-      } else {
-        document.getElementById('tabProfileBtn').classList.add('active');
-        document.getElementById('profileSection').classList.add('active');
-        loadDecisions();
-      }
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
+    async function sendToDiscord(app) {
+      if (!WORKER_URL) return false;
+      const res = await fetch(WORKER_URL.replace(/\/+$/, '') + '/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: app.user, nick: app.nick, twitch: app.twitch, reason: app.reason })
+      });
+      return res.ok;
+    }
+
+    // ====== РЕШЕНИЯ АДМИНИСТРАЦИИ (файл decisions.json рядом с сайтом) ======
     let decisions = {};
 
     async function loadDecisions() {
@@ -296,7 +256,7 @@
           Object.keys(data).forEach(k => { if (k.charAt(0) !== '_') next[k.toLowerCase()] = data[k]; });
           decisions = next;
         }
-      } catch (e) {}
+      } catch (e) { /* файл недоступен (например, сайт открыт с компьютера) — остаёмся на локальном статусе */ }
       updateUI();
     }
 
@@ -310,6 +270,7 @@
     function getDecision() {
       if (!currentUser) return null;
       const app = getMyApp();
+      // ищем решение сначала по нику в Minecraft из заявки, затем по нику аккаунта на сайте
       const keys = [app && app.nick, currentUser.nick].filter(Boolean).map(k => k.toLowerCase());
       let d = null;
       for (const key of keys) {
@@ -317,6 +278,7 @@
         if (c && (c.status === 'accepted' || c.status === 'rejected')) { d = c; break; }
       }
       if (!d) return null;
+      // если игрок подал заявку заново после даты решения — старое решение не показываем
       if (app && app.submittedAt && d.date && String(d.date) < isoDay(app.submittedAt)) return null;
       return d;
     }
@@ -369,6 +331,7 @@
           badge.className = 'status-badge pending';
         }
 
+        // не затираем текст, который игрок сейчас печатает в форме
         const typing = !!(document.activeElement && wlFormCard.contains(document.activeElement));
         if (app) {
           document.getElementById('profWlNick').textContent = app.nick;
@@ -391,6 +354,23 @@
         navAuthBtn.textContent = 'Войти';
         guestBlock.style.display = 'block';
         userBlock.style.display = 'none';
+      }
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+
+      if (tab === 'rules') {
+        document.getElementById('tabRulesBtn').classList.add('active');
+        document.getElementById('rulesSection').classList.add('active');
+      } else if (tab === 'map') {
+        document.getElementById('tabMapBtn').classList.add('active');
+        document.getElementById('mapSection').classList.add('active');
+      } else {
+        document.getElementById('tabProfileBtn').classList.add('active');
+        document.getElementById('profileSection').classList.add('active');
+        loadDecisions();
       }
     }
 
@@ -479,4 +459,68 @@
       const box = document.getElementById('wlMsg');
       const colors = {
         ok:   ['rgba(46,213,115,0.15)', '#2ed573'],
-        warn: ['rgba(255,159,67,0.15)', '#ff9
+        warn: ['rgba(255,159,67,0.15)', '#ff9f43'],
+        err:  ['rgba(245,90,90,0.15)',  '#f55a5a']
+      }[kind];
+      box.style.display = 'block';
+      box.style.background = colors[0];
+      box.style.color = colors[1];
+      box.style.border = '1px solid ' + colors[1];
+      box.textContent = text;
+    }
+
+    async function submitWL(e) {
+      e.preventDefault();
+      if (!currentUser) return;
+
+      const wlNick = document.getElementById('wlNickInput').value.trim();
+      const twitchNick = document.getElementById('wlTwitchInput').value.trim();
+      const reason = document.getElementById('wlText').value.trim();
+      const btn = document.getElementById('wlSubmitBtn');
+
+      if (!wlNick || !twitchNick) {
+        showWlMsg('❌ Заполните ник в Майнкрафте и Twitch!', 'err');
+        return;
+      }
+
+      const idx = applications.findIndex(a => a.user.toLowerCase() === currentUser.nick.toLowerCase());
+      const dec = getDecision();
+      if (dec && dec.status === 'accepted') {
+        showWlMsg('✅ Ваша заявка уже одобрена!', 'ok');
+        return;
+      }
+
+      const app = { user: currentUser.nick, nick: wlNick, twitch: twitchNick, reason: reason, status: 'На рассмотрении', submittedAt: Date.now() };
+
+      btn.disabled = true;
+      btn.textContent = 'Отправка...';
+
+      let sent = false;
+      try {
+        sent = await sendToDiscord(app);
+      } catch (err) {
+        sent = false;
+      }
+
+      if (idx >= 0) applications[idx] = app; else applications.push(app);
+      store.setItem('colaland_apps', JSON.stringify(applications));
+
+      btn.disabled = false;
+      btn.textContent = sent ? 'Отправлено! ✅' : 'Сохранено локально';
+      setTimeout(() => { btn.textContent = 'Отправить заявку'; }, 3000);
+      updateUI();
+
+      if (sent) {
+        showWlMsg('✅ Заявка успешно отправлена администрации! Статус: «На рассмотрении».', 'ok');
+      } else if (!WORKER_URL) {
+        showWlMsg('⚠️ Заявка сохранена только в этом браузере: владелец сайта ещё не указал WORKER_URL в коде, поэтому администрация её не получила.', 'warn');
+      } else {
+        showWlMsg('❌ Не удалось отправить заявку. Попробуйте позже.', 'err');
+      }
+    }
+
+    updateUI();
+    loadDecisions();
+  </script>
+</body>
+</html>

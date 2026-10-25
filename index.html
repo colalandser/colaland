@@ -226,34 +226,20 @@
     let isRegisterMode = false;
 
     // ====== НАСТРОЙКА ОТПРАВКИ ЗАЯВОК ======
-    // Вставьте сюда URL Discord-вебхука (Настройки канала → Интеграции → Вебхуки → Копировать URL).
-    // Каждая заявка будет приходить в ваш Discord-канал.
-    const WEBHOOK_URL = 'https://discord.com/api/webhooks/1563623956412366861/MIkjL1QHGo3SExpovGOrbnp3i5FTL8DUwDiB2eeVgnr2t4GyBQ6su9JygVbAv9UOvUsq';
+    // Вставьте сюда адрес вашего Cloudflare Worker (например https://colaland.ваше-имя.workers.dev).
+    // Заявки уходят на него, а он публикует их в Discord с кнопками «Принять» / «Отказать».
+    const WORKER_URL = 'https://colaland.nariman2024n.workers.dev';
 
     function escapeHtml(str) {
       return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
     async function sendToDiscord(app) {
-      if (!WEBHOOK_URL) return false;
-      const res = await fetch(WEBHOOK_URL, {
+      if (!WORKER_URL) return false;
+      const res = await fetch(WORKER_URL.replace(/\/+$/, '') + '/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: 'Colaland WhiteList',
-          embeds: [{
-            title: '📝 Новая заявка в WhiteList',
-            color: 0xff9f43,
-            fields: [
-              { name: 'Аккаунт на сайте', value: '`' + app.user.slice(0, 100) + '`' },
-              { name: 'Ник в Minecraft', value: '`' + app.nick.slice(0, 100) + '`', inline: true },
-              { name: 'Ник на Twitch', value: '`' + app.twitch.slice(0, 100) + '`', inline: true },
-              { name: 'Что будет делать на сервере', value: (app.reason || '—').slice(0, 1000) },
-              { name: 'Команда для консоли (скопируйте, если принимаете)', value: '```whitelist add ' + app.nick.slice(0, 100) + '```' }
-            ],
-            timestamp: new Date().toISOString()
-          }]
-        })
+        body: JSON.stringify({ user: app.user, nick: app.nick, twitch: app.twitch, reason: app.reason })
       });
       return res.ok;
     }
@@ -526,8 +512,8 @@
 
       if (sent) {
         showWlMsg('✅ Заявка успешно отправлена администрации! Статус: «На рассмотрении».', 'ok');
-      } else if (!WEBHOOK_URL) {
-        showWlMsg('⚠️ Заявка сохранена только в этом браузере: владелец сайта ещё не указал WEBHOOK_URL в коде, поэтому администрация её не получила.', 'warn');
+      } else if (!WORKER_URL) {
+        showWlMsg('⚠️ Заявка сохранена только в этом браузере: владелец сайта ещё не указал WORKER_URL в коде, поэтому администрация её не получила.', 'warn');
       } else {
         showWlMsg('❌ Не удалось отправить заявку. Попробуйте позже.', 'err');
       }

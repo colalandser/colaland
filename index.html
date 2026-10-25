@@ -97,7 +97,7 @@
         <div class="home-actions">
           <button class="btn-link primary" onclick="switchTab('profile')">Подать заявку в вайтлист</button>
           <button class="btn-link" onclick="switchTab('rules')">Правила сервера</button>
-          <a class="btn-link" href="https://discord.gg/F9WtvTSYmc" target="_blank" rel="noopener noreferrer">Discord</a>
+          <a class="btn-link" href="https://discord.gg/PWnYtHwkUJ" target="_blank" rel="noopener noreferrer">Discord</a>
         </div>
       </div>
 
@@ -268,7 +268,7 @@
 
   <footer>
     <div class="footer-social">
-      <a class="social-link discord" href="https://discord.gg/F9WtvTSYmc" target="_blank" rel="noopener noreferrer" aria-label="Discord" title="Discord">
+      <a class="social-link discord" href="https://discord.gg/PWnYtHwkUJ" target="_blank" rel="noopener noreferrer" aria-label="Discord" title="Discord">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
       </a>
       <a class="social-link telegram" href="https://t.me/cocacola_wvv" target="_blank" rel="noopener noreferrer" aria-label="Telegram" title="Telegram">
@@ -333,6 +333,8 @@
     let applications = readJSON('colaland_apps', []);
     let registeredUsers = readJSON('colaland_reg_users', []);
 
+    // Чистим данные от старых версий сайта: битые записи без нужных полей выбрасываем,
+    // иначе они ломают весь скрипт (ошибка toLowerCase of undefined).
     if (!currentUser || typeof currentUser.nick !== 'string' || currentUser.isAdmin) currentUser = null;
     if (!Array.isArray(applications)) applications = [];
     applications = applications
@@ -349,15 +351,18 @@
     registeredUsers = registeredUsers.filter(u => u && typeof u.nick === 'string' && typeof u.pass === 'string');
     let isRegisterMode = false;
 
-    // ====== WORKER (приём заявок и решения админов) ======
-const WORKER_URL = 'https://colaland.nariman2024n.workers.dev';
+    // ====== НАСТРОЙКА ОТПРАВКИ ЗАЯВОК ======
+    // Вставьте сюда адрес вашего Cloudflare Worker (например https://colaland.ваше-имя.workers.dev).
+    // Заявки уходят на него, а он публикует их в Discord с кнопками «Принять» / «Отказать».
+    const WORKER_URL = 'https://colaland.nariman2024n.workers.dev';
 
     function escapeHtml(str) {
       return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
     async function sendToDiscord(app) {
-      const res = await fetch(WORKER_URL + '/apply', {
+      if (!WORKER_URL) return false;
+      const res = await fetch(WORKER_URL.replace(/\/+$/, '') + '/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user: app.user, nick: app.nick, twitch: app.twitch, reason: app.reason })
@@ -365,19 +370,24 @@ const WORKER_URL = 'https://colaland.nariman2024n.workers.dev';
       return res.ok;
     }
 
-    // ====== РЕШЕНИЯ АДМИНИСТРАЦИИ (берутся из Worker) ======
+    // ====== РЕШЕНИЯ АДМИНИСТРАЦИИ (файл decisions.json рядом с сайтом) ======
     let decisions = {};
 
     async function loadDecisions() {
       try {
-        const res = await fetch(WORKER_URL + '/decisions?t=' + Date.now(), { cache: 'no-store' });
+        let res = null;
+        if (WORKER_URL) {
+          // через Worker: решение видно сразу, без задержки GitHub Pages
+          try { res = await fetch(WORKER_URL.replace(/\/+$/, '') + '/decisions', { cache: 'no-store' }); } catch (e) { res = null; }
+        }
+        if (!res || !res.ok) res = await fetch('decisions.json?t=' + Date.now(), { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           const next = {};
           Object.keys(data).forEach(k => { if (k.charAt(0) !== '_') next[k.toLowerCase()] = data[k]; });
           decisions = next;
         }
-      } catch (e) { /* файл недоступен — остаёмся на локальном статусе */ }
+      } catch (e) { /* файл недоступен (например, сайт открыт с компьютера) — остаёмся на локальном статусе */ }
       updateUI();
     }
 
@@ -391,6 +401,7 @@ const WORKER_URL = 'https://colaland.nariman2024n.workers.dev';
     function getDecision() {
       if (!currentUser) return null;
       const app = getMyApp();
+      // ищем решение сначала по нику в Minecraft из заявки, затем по нику аккаунта на сайте
       const keys = [app && app.nick, currentUser.nick].filter(Boolean).map(k => k.toLowerCase());
       let d = null;
       for (const key of keys) {
@@ -398,7 +409,8 @@ const WORKER_URL = 'https://colaland.nariman2024n.workers.dev';
         if (c && (c.status === 'accepted' || c.status === 'rejected')) { d = c; break; }
       }
       if (!d) return null;
-      if (app && app.submittedAt && d.ts && Number(d.ts) < app.submittedAt) return null;
+      // если игрок подал заявку заново после даты решения — старое решение не показываем
+      if (app && app.submittedAt && d.date && String(d.date) < isoDay(app.submittedAt)) return null;
       return d;
     }
 
@@ -450,6 +462,7 @@ const WORKER_URL = 'https://colaland.nariman2024n.workers.dev';
           badge.className = 'status-badge pending';
         }
 
+        // не затираем текст, который игрок сейчас печатает в форме
         const typing = !!(document.activeElement && wlFormCard.contains(document.activeElement));
         if (app) {
           document.getElementById('profWlNick').textContent = app.nick;
@@ -655,15 +668,18 @@ const WORKER_URL = 'https://colaland.nariman2024n.workers.dev';
       updateUI();
 
       if (sent) {
-        showWlMsg('✅ Заявка успешно отправлена в Discord! Статус: «На рассмотрении».', 'ok');
+        showWlMsg('✅ Заявка успешно отправлена администрации! Статус: «На рассмотрении».', 'ok');
+      } else if (!WORKER_URL) {
+        showWlMsg('⚠️ Заявка сохранена только в этом браузере: владелец сайта ещё не указал WORKER_URL в коде, поэтому администрация её не получила.', 'warn');
       } else {
-        showWlMsg('❌ Не удалось отправить заявку в Discord. Проверьте подключение или настройки вебхука.', 'err');
+        showWlMsg('❌ Не удалось отправить заявку. Попробуйте позже.', 'err');
       }
     }
 
     updateUI();
     loadDecisions();
 
+    // Статус обновляется сам: раз в 15 секунд и при возвращении на вкладку — перезагружать страницу не нужно
     setInterval(() => { if (currentUser && !document.hidden) loadDecisions(); }, 15000);
     document.addEventListener('visibilitychange', () => { if (currentUser && !document.hidden) loadDecisions(); });
   </script>

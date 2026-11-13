@@ -93,12 +93,11 @@ h2{margin:0 0 14px;font-size:20px}
     <h2>Почему не могу заплатить</h2>
     <a class="btn formbtn" href="https://docs.google.com/forms/d/e/1FAIpQLSfYh_zRGpsNhmgKcdNDizzRU1aEXIvDLnEE_OnmkBL8Oa3psg/viewform" target="_blank" rel="noopener">📝 Написать причину в форме</a>
     <p class="note" style="margin-top:0">Ответ сразу попадёт к админу.</p>
-    <p class="or">Или оставь заметку для себя:</p>
+    <p class="or">Или напиши прямо здесь, сообщение уйдёт админу в Discord:</p>
     <input id="whyNick" placeholder="Твой ник" maxlength="16">
     <textarea id="whyText" placeholder="Напиши, почему не получается заплатить налог…" maxlength="400"></textarea>
     <button class="btn" id="whyBtn">Отправить админу</button>
-    <ul class="list" id="whyList"></ul>
-    <p class="note">Причина уйдёт админу в Discord и сохранится в списке ниже у тебя в браузере.</p>
+    <p class="note">Причину увидит только админ.</p>
   </section>
 </div>
 
@@ -131,10 +130,6 @@ $('payBtn').onclick=()=>{
 };
 
 // причины
-let why=load('nm_why','[]');
-function drawWhy(){
-  $('whyList').innerHTML=why.length?why.slice().reverse().map(m=>`<li><span class="who">${esc(m.n)}</span><span class="when">${new Date(m.d).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</span><br>${esc(m.t)}</li>`).join(''):'<li class="empty">Пока никто ничего не написал</li>';
-}
 let lastSent=0;
 $('whyBtn').onclick=async()=>{
   const n=$('whyNick').value.trim()||'Игрок',t=$('whyText').value.trim();if(!t)return;
@@ -146,13 +141,12 @@ $('whyBtn').onclick=async()=>{
       const r=await fetch(CONFIG.discordWebhook,{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({username:'Налог Майн',content:`💎 **${n}** не может заплатить налог 20 руды.\nПричина: ${t}`,allowed_mentions:{parse:[]}})});
       if(!r.ok)throw new Error(r.status);
-      lastSent=Date.now();btn.textContent='Отправлено ✓';
+      lastSent=Date.now();btn.textContent='Отправлено ✓';$('whyText').value='';
     }catch(e){btn.textContent='Не вышло, попробуй позже'}
     btn.disabled=false;setTimeout(()=>btn.textContent='Отправить админу',2500);
   }
-  why.push({n,t,d:Date.now()});why=why.slice(-100);save('nm_why',why);$('whyText').value='';drawWhy();
 };
-drawPay();drawWhy();
+drawPay();
 </script>
 </body>
 </html>

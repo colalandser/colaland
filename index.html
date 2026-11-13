@@ -1,695 +1,158 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Colaland — Официальный сайт</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: #0d0d0e; color: #e1e1e6; font-family: sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
-    
-    header { background: #121214; border-bottom: 1px solid #202024; padding: 0 24px; height: 70px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-    .brand { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 800; color: #fff; cursor: pointer; }
-    .brand-logo { background: #ff9f43; color: #000; padding: 4px 10px; border-radius: 6px; }
-    
-    nav { display: flex; gap: 8px; }
-    .nav-btn { background: transparent; border: none; color: #a8a8b3; padding: 8px 16px; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; }
-    .nav-btn:hover, .nav-btn.active { color: #fff; background: #202024; }
-    
-    .profile-header-btn { background: #202024; border: 1px solid #29292e; color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
-    
-    main { max-width: 800px; width: 100%; margin: 40px auto; padding: 0 20px; flex: 1; }
-    .section { display: none; }
-    .section.active { display: block; }
-    
-    .card { background: #121214; border: 1px solid #202024; border-radius: 12px; padding: 24px; margin-bottom: 16px; }
-    .rule-item { background: #18181b; padding: 14px; border-radius: 8px; margin-top: 10px; font-size: 14px; line-height: 1.5; border: 1px solid #27272a; }
-    
-    .status-badge { background: rgba(46, 213, 115, 0.15); color: #2ed573; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 13px; border: 1px solid rgba(46, 213, 115, 0.3); }
-    .status-badge.pending { background: rgba(255, 159, 67, 0.15); color: #ff9f43; border-color: rgba(255, 159, 67, 0.3); }
-    .status-badge.rejected { background: rgba(245, 90, 90, 0.15); color: #f55a5a; border-color: rgba(245, 90, 90, 0.3); }
-    
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 100; }
-    .modal-card { background: #121214; border: 1px solid #202024; border-radius: 16px; padding: 32px; width: 100%; max-width: 380px; }
-    .input-group { margin-bottom: 16px; }
-    .input-group label { display: block; color: #a8a8b3; font-size: 12px; margin-bottom: 6px; text-transform: uppercase; font-weight: 600; }
-    .input-group input, .input-group textarea { width: 100%; background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 12px; color: #fff; outline: none; }
-    .submit-btn { width: 100%; background: #ff9f43; color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; }
-    .btn-action { padding: 8px 16px; border-radius: 6px; border: none; font-weight: 700; cursor: pointer; margin-right: 8px; }
-    .switch-link { color: #ff9f43; cursor: pointer; font-size: 13px; text-align: center; margin-top: 12px; display: block; }
-
-    footer { border-top: 1px solid #202024; background: #121214; padding: 28px 20px; text-align: center; color: #a8a8b3; font-size: 13px; line-height: 1.7; }
-    .footer-social { display: flex; justify-content: center; gap: 12px; margin-bottom: 16px; }
-    .social-link { width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; background: #202024; border: 1px solid #29292e; border-radius: 10px; color: #a8a8b3; text-decoration: none; transition: background 0.15s, color 0.15s, transform 0.15s; }
-    .social-link svg { width: 22px; height: 22px; fill: currentColor; }
-    .social-link:hover { color: #fff; transform: translateY(-2px); }
-    .social-link.discord:hover { background: #5865F2; border-color: #5865F2; }
-    .social-link.telegram:hover { background: #27A7E7; border-color: #27A7E7; }
-    .footer-title { color: #e1e1e6; font-weight: 600; }
-    .footer-author b { color: #ff9f43; }
-    .footer-note { font-size: 12px; opacity: 0.75; }
-
-    .hero { text-align: center; padding: 48px 24px; background: linear-gradient(180deg, #17171a 0%, #121214 100%); }
-    .hero h1 { font-size: 44px; letter-spacing: 1px; margin-bottom: 8px; }
-    .hero h1 span { color: #ff9f43; }
-    .hero p { color: #8d8d99; font-size: 16px; line-height: 1.6; max-width: 520px; margin: 0 auto; }
-    .ip-label { color: #a8a8b3; font-size: 12px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 10px; }
-    .ip-box { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
-    .ip-code { background: #18181b; border: 1px solid #27272a; border-radius: 10px; padding: 14px 18px; font-family: Consolas, Menlo, monospace; font-size: 18px; color: #fff; word-break: break-all; user-select: all; }
-    .ip-copy { background: #ff9f43; color: #000; border: none; border-radius: 10px; padding: 14px 20px; font-weight: 700; font-size: 15px; cursor: pointer; }
-    .ip-copy:hover { filter: brightness(1.08); }
-    .home-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
-    .btn-link { display: inline-block; background: #202024; border: 1px solid #29292e; color: #fff; padding: 12px 20px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; }
-    .btn-link.primary { background: #ff9f43; border-color: #ff9f43; color: #000; font-weight: 700; }
-    .btn-link:hover { filter: brightness(1.12); }
-    .steps { list-style: none; counter-reset: step; }
-    .steps li { counter-increment: step; background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 12px 14px 12px 48px; margin-top: 10px; font-size: 14px; line-height: 1.5; position: relative; }
-    .steps li::before { content: counter(step); position: absolute; left: 14px; top: 11px; width: 22px; height: 22px; border-radius: 50%; background: #ff9f43; color: #000; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; }
-    .rule-list { padding-left: 22px; margin: 8px 0; }
-    .rule-list li { margin-bottom: 4px; }
-    .rule-num { color: #ff9f43; font-weight: 800; margin-right: 6px; }
-    .rule-punish { color: #ff9f43; font-weight: 700; }
-    @media (max-width: 640px) { header { padding: 0 12px; } .nav-btn { padding: 8px 8px; font-size: 13px; } .hero h1 { font-size: 34px; } .ip-code { font-size: 15px; } }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Налог Майн — 20 алмазной руды</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root{--bg1:#04121c;--bg2:#0a2a3a;--card:rgba(12,34,48,.78);--line:rgba(79,208,224,.28);--text:#eaf8fb;--muted:#8fb4bf;--accent:#4fe3f0;--accent2:#7dffb0;--btn-text:#04222a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg1:#e3f6fa;--bg2:#c4ebf3;--card:rgba(255,255,255,.82);--line:rgba(10,120,140,.3);--text:#0b2a33;--muted:#4b707a;--accent:#0a8ea0;--accent2:#1e9b55;--btn-text:#ffffff}}
+:root[data-theme="dark"]{--bg1:#04121c;--bg2:#0a2a3a;--card:rgba(12,34,48,.78);--line:rgba(79,208,224,.28);--text:#eaf8fb;--muted:#8fb4bf;--accent:#4fe3f0;--accent2:#7dffb0;--btn-text:#04222a}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*{box-sizing:border-box}
+body{margin:0;min-height:100%;color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.55;
+background:radial-gradient(900px 500px at 85% -10%,rgba(79,227,240,.22),transparent 60%),radial-gradient(700px 500px at -10% 110%,rgba(125,255,176,.14),transparent 60%),linear-gradient(160deg,var(--bg1),var(--bg2));background-color:var(--bg1);background-attachment:fixed}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.35;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:40px 40px;-webkit-mask-image:linear-gradient(180deg,#000,transparent 70%);mask-image:linear-gradient(180deg,#000,transparent 70%)}
+.wrap{position:relative;max-width:820px;margin:0 auto;padding:28px 16px 48px}
+.pix{font-family:"Press Start 2P","Courier New",monospace}
+header{text-align:center;margin-bottom:22px}
+h1{font-size:clamp(20px,5vw,32px);margin:0 0 10px;line-height:1.4;text-shadow:0 0 24px rgba(79,227,240,.5)}
+h1 span{color:var(--accent)}
+.sub{color:var(--muted);margin:0;font-size:16px}
+nav{display:flex;gap:8px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}
+nav button{background:var(--card);color:var(--text);border:1px solid var(--line);padding:10px 18px;font-size:15px;cursor:pointer;border-radius:10px;font-weight:600;backdrop-filter:blur(6px)}
+nav button.on{background:var(--accent);color:var(--btn-text);border-color:var(--accent);box-shadow:0 0 18px rgba(79,227,240,.4)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;backdrop-filter:blur(8px);box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.tab{display:none}.tab.on{display:block}
+.hero{text-align:center;padding:12px 0 6px}
+.big{font-size:clamp(56px,16vw,96px);font-weight:900;color:var(--accent);text-shadow:0 0 40px rgba(79,227,240,.6);line-height:1}
+.big small{font-size:.35em;display:block;color:var(--text);margin-top:10px;font-weight:700;letter-spacing:.5px}
+.gem{display:inline-block;animation:fl 3s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-6px)}}
+@media (prefers-reduced-motion:reduce){.gem{animation:none}}
+.rules{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:10px}
+.rules li{background:rgba(79,227,240,.08);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.rules b{color:var(--accent2)}
+.send{display:flex;gap:8px;flex-wrap:wrap}
+input,textarea{background:rgba(0,0,0,.25);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:15px;font-family:inherit;width:100%}
+input::placeholder,textarea::placeholder{color:var(--muted)}
+input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+textarea{resize:vertical;min-height:90px;margin:8px 0}
+.btn{background:var(--accent);color:var(--btn-text);border:0;padding:11px 20px;border-radius:10px;font-weight:800;cursor:pointer;font-size:15px}
+.btn:hover{filter:brightness(1.1)}
+.formbtn{display:inline-block;text-decoration:none;margin-bottom:6px}
+.or{color:var(--muted);margin:18px 0 8px;font-size:14px}
+h2{margin:0 0 14px;font-size:20px}
+.list{list-style:none;padding:0;margin:16px 0 0}
+.list li{padding:12px 0;border-bottom:1px solid var(--line)}
+.list li:last-child{border:0}
+.who{font-weight:700;color:var(--accent)}
+.when{color:var(--muted);font-size:12px;margin-left:8px}
+.note{color:var(--muted);font-size:13px;margin:12px 0 0}
+.empty{color:var(--muted)}
+</style>
 </head>
 <body>
-
+<div class="wrap">
   <header>
-    <div class="brand" onclick="switchTab('home')">
-      <span class="brand-logo">CL</span>
-      <span>COLALAND</span>
-    </div>
-    <nav>
-      <button class="nav-btn active" id="tabHomeBtn" onclick="switchTab('home')">Главная</button>
-      <button class="nav-btn" id="tabRulesBtn" onclick="switchTab('rules')">Правила</button>
-      <button class="nav-btn" id="tabMapBtn" onclick="switchTab('map')">Карта</button>
-      <button class="nav-btn" id="tabProfileBtn" onclick="switchTab('profile')">Вайтлист / Профиль</button>
-    </nav>
-    <button class="profile-header-btn" id="navAuthBtn" onclick="openAuthModal()">Войти</button>
+    <h1 class="pix">⛏️ НАЛОГ <span>МАЙН</span></h1>
+    <p class="sub">Платим налог вовремя — живём спокойно</p>
   </header>
+  <nav>
+    <button class="on" data-t="tax">Налог</button>
+    <button data-t="pay">Оплата</button>
+    <button data-t="why">Почему не плачу</button>
+  </nav>
 
-  <main>
-    <!-- ГЛАВНАЯ -->
-    <section id="homeSection" class="section active">
-      <div class="card hero">
-        <h1>COLA<span>LAND</span></h1>
-        <p>Ванильный Minecraft-сервер. Подайте заявку в вайтлист, дождитесь решения администрации и заходите играть.</p>
-        <div class="home-actions">
-          <button class="btn-link primary" onclick="switchTab('profile')">Подать заявку в вайтлист</button>
-          <button class="btn-link" onclick="switchTab('rules')">Правила сервера</button>
-          <a class="btn-link" href="https://discord.gg/PWnYtHwkUJ" target="_blank" rel="noopener noreferrer">Discord</a>
-        </div>
-      </div>
-
-      <div class="card" style="text-align: center;">
-        <div class="ip-label">IP сервера</div>
-        <div class="ip-box">
-          <div class="ip-code" id="serverIp">colaventrix-4YwK.aternos.me:36383</div>
-          <button class="ip-copy" onclick="copyIP(this)">Скопировать</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3 style="color: #ff9f43; margin-bottom: 4px;">Как попасть на сервер</h3>
-        <ol class="steps">
-          <li>Зарегистрируйтесь на сайте во вкладке «Вайтлист / Профиль».</li>
-          <li>Заполните и отправьте заявку в вайтлист.</li>
-          <li>Дождитесь решения администрации: статус заявки виден в вашем профиле.</li>
-          <li>После одобрения заходите на сервер по IP выше.</li>
-        </ol>
-      </div>
-    </section>
-
-    <!-- ПРАВИЛА -->
-    <section id="rulesSection" class="section">
-      <h1 style="margin-bottom: 8px; font-size: 32px;">Правила сервера Colaland</h1>
-      <p style="color: #8d8d99; margin-bottom: 24px;">Заходя на сервер, вы соглашаетесь с правилами проекта.</p>
-
-      <div class="card">
-        <h3 style="color: #ff9f43; margin-bottom: 10px;">1. Общее положение</h3>
-        <div class="rule-item"><span class="rule-num">1.1</span>При заходе на сервер вы автоматически соглашаетесь со всеми правилами проекта. Незнание, неверное осмысление или намеренное игнорирование правил не освобождает от ответственности.</div>
-        <div class="rule-item"><span class="rule-num">1.2</span>Владелец аккаунта несёт полную и единоличную ответственность за все действия, совершённые с его аккаунта. При краже аккаунта - немедленно свяжитесь с администрацией. Защищайте аккаунт сложным паролем.</div>
-        <div class="rule-item"><span class="rule-num">1.3</span>Средства, потраченные на платные услуги, являются добровольным пожертвованием и возврату не подлежат. Администрация не несёт ответственности за ошибочно переведённые средства.</div>
-        <div class="rule-item"><span class="rule-num">1.5</span>Правила проекта действуют везде, что связано с сервером: в игре, в Discord, в голосовых каналах, в личных сообщениях, на стримах и в любых других местах, где упоминается или рекламируется сервер.</div>
-        <div class="rule-item"><span class="rule-num">1.6</span>Каждый режим/сезон может иметь свои дополнительные правила и исключения. При конфликте приоритет имеют правила конкретного режима.</div>
-        <div class="rule-item"><span class="rule-num">1.7</span>Руководство проекта оставляет за собой право принимать решения вне правил, если того требует конкретный случай, а также трактовать правила по своему усмотрению при очевидном вреде серверу через лазейки и неточности.</div>
-        <div class="rule-item"><span class="rule-num">1.8</span>Вид и длительность наказания определяются администрацией исходя из тяжести нарушения, истории игрока и контекста. При многократных нарушениях срок наказания кратно увеличивается вплоть до перманентного бана.</div>
-        <div class="rule-item"><span class="rule-num">1.9</span>Запрещено иметь более 1 аккаунта на сервере без согласования с администрацией. <span class="rule-punish">Нарушение приравнивается к перманентному бану всех аккаунтов.</span></div>
-        <div class="rule-item"><span class="rule-num">1.10</span>Профиль и ник пользователя должны соответствовать правилам сервера и нормам поведения.</div>
-        <div class="rule-item"><span class="rule-num">1.11</span>Запрещено выдавать себя за администрацию, модерацию или медиа-партнёров сервера. <span class="rule-punish">Бан до 1 месяца.</span></div>
-        <div class="rule-item"><span class="rule-num">1.12</span>Запрещена любая коммерческая деятельность, кроме игровой (продажа ресурсов, услуг, аккаунтов за реальные деньги). <span class="rule-punish">Перманентный бан.</span></div>
-        <div class="rule-item"><span class="rule-num">1.13</span>Запрещено скрывать информацию о нарушениях правил от администрации. Соучастие приравнивается к нарушению - <span class="rule-punish">наказание, идентичное нарушителю.</span></div>
-        <div class="rule-item"><span class="rule-num">1.14</span>Запрещено провоцировать или подталкивать игроков к нарушению правил. <span class="rule-punish">Бан до 2 месяцев.</span></div>
-        <div class="rule-item"><span class="rule-num">1.15</span>Обращение к администрации должно происходить только через тикеты в Discord. В личных сообщениях обращения не рассматриваются (исключение - невозможность связаться основным путём). Администратор вправе не отвечать и заблокировать (в личных сообщениях) нарушителя без предупреждения.</div>
-        <div class="rule-item"><span class="rule-num">1.16</span>Срок подачи жалобы на незначительные нарушения (помехи, нарушения чата и т.п.) - 3 дня с момента нарушения. Жалоба подаётся пострадавшим (исключение - отсутствие возможности).</div>
-      </div>
-
-      <div class="card">
-        <h3 style="color: #ff9f43; margin-bottom: 10px;">2. Игровой процесс</h3>
-        <div class="rule-item"><span class="rule-num">2.1</span>Запрещены следующие модификации и функции (включая хранение, даже если не используете):<ul class="rule-list"><li>X-Ray и любые его виды;</li><li>автоматизация игрового процесса (Baritone, AutoFish, AutoTotem, AutoHeal, AutoClicker и т.п.);</li><li>получение сида мира;</li><li>FreeCam (разрешён только FreeCam, не позволяющий летать сквозь стены);</li><li>Litematica Printer;</li><li>моды, дающие преимущество в PvP (наводка, тайминг ударов, автобаф и т.п.);</li><li>моды для удаления эффектов игры (гамма разрешена);</li><li>моды для чтения книг из инвентаря;</li><li>моды для получения информации о крафтах;</li><li>любые другие модификации, дающие нечестное преимущество.</li></ul><span class="rule-punish">Наказание: перманентный бан.</span></div>
-        <div class="rule-item"><span class="rule-num">2.2</span>Запрещено использовать баги и уязвимости Minecraft, модов, плагинов, правил и прочих дополнений для получения преимущества. Разрешён дюп только: ковров для артов и ТНТ. <span class="rule-punish">Всё остальное - перманентный бан.</span></div>
-        <div class="rule-item"><span class="rule-num">2.3</span>Запрещено использовать предметы, полученные путём кражи с ивентов, а также предметы, созданные для ивентов и не предназначенные для использования после них. <span class="rule-punish">Бан до 14 дней с изъятием предметов.</span></div>
-        <div class="rule-item"><span class="rule-num">2.4</span>Отказ от проверки на запрещённые модификации приравнивается к их использованию. <span class="rule-punish">Наказание по максимальной строгости (перманентный бан).</span></div>
-        <div class="rule-item"><span class="rule-num">2.5</span>Запрещено гриферство: воровство ресурсов, разрушение построек, помехи комфортной игре, засорение территорий, убийства без оснований, многократный троллинг даже после просьб прекратить. <span class="rule-punish">Перманентный бан.</span></div>
-        <div class="rule-item"><span class="rule-num">2.6</span>Запрещены помехи работе администрации и медиа-партнёров. <span class="rule-punish">Бан до 30 дней.</span></div>
-        <div class="rule-item"><span class="rule-num">2.7</span>Запрещено постить, создавать или иным образом показывать банворды (слова, за которые банят на Twitch). <span class="rule-punish">Бан до 30 дней.</span></div>
-        <div class="rule-item"><span class="rule-num">2.8</span>Запрещена любая политика из реальной жизни, включая символику реальных стран (даже распавшихся) и упоминания вооружённых конфликтов. <span class="rule-punish">Бан до 3 месяцев.</span></div>
-        <div class="rule-item"><span class="rule-num">2.9</span>Запрещено использование нацистской символики в любом виде, а также любой символики, похожей на нацистскую или сложно отличимой от неё (скины, музыка, символы, слова и т.д.). <span class="rule-punish">Перманентный бан.</span></div>
-        <div class="rule-item"><span class="rule-num">2.10</span>Запрещены помехи работоспособности сервера (лаг-машины, огромные скопления сущностей и т.п.). <span class="rule-punish">Бан до 30 дней с возможностью перманентного при повторении.</span></div>
-        <div class="rule-item"><span class="rule-num">2.11</span>Запрещено значительно вредить проекту, массово мешая игровому процессу. <span class="rule-punish">Перманентный бан.</span></div>
-      </div>
-
-      <div class="card">
-        <h3 style="color: #ff9f43; margin-bottom: 10px;">3. Чат и общение</h3>
-        <div class="rule-item"><span class="rule-num">3.1</span>Каждый игрок обязан соблюдать общественные нормы морали и базовой адекватности. Неуважение к другим участникам - наказуемо.</div>
-        <div class="rule-item"><span class="rule-num">3.2</span>Запрещено намеренное распространение дезинформации (клевета, обман администрации). <span class="rule-punish">Мут/бан до 30 дней.</span></div>
-        <div class="rule-item"><span class="rule-num">3.3</span>Запрещено распространение личной информации игроков без их согласия. <span class="rule-punish">Мут/бан до 2 месяцев.</span></div>
-        <div class="rule-item"><span class="rule-num">3.4</span>Запрещены любые унижения, буллинг, оскорбления чести и достоинства игроков. <span class="rule-punish">Мут до 7 дней / Бан до 14 дней.</span></div>
-        <div class="rule-item"><span class="rule-num">3.5</span>Запрещены любые дискриминации по религии, национальности, расе, полу, стране и т.д. <span class="rule-punish">Мут/бан до 30 дней.</span></div>
-        <div class="rule-item"><span class="rule-num">3.6</span>Запрещена любая реклама без согласования с администрацией. <span class="rule-punish">Перманентный бан.</span></div>
-        <div class="rule-item"><span class="rule-num">3.7</span>Запрещена публикация материалов шокирующего содержания (мерцающие картинки, скримеры), а также распространение вредоносных ссылок. <span class="rule-punish">Мут до 3 месяцев / Бан до 30 дней.</span></div>
-        <div class="rule-item"><span class="rule-num">3.8</span>Запрещены любые засорения чата (флуд, спам, капс, оффтоп). <span class="rule-punish">Мут до 1 дня.</span></div>
-        <div class="rule-item"><span class="rule-num">3.9</span>Запрещено пинговать игроков и администрацию после просьбы прекратить упоминания. <span class="rule-punish">Мут до 7 дней.</span></div>
-        <div class="rule-item"><span class="rule-num">3.10</span>Запрещено чрезмерное упоминание администрации/модерации, упоминание по малозначимым вопросам или с целью задать вопрос, ответ на который знают не только они. <span class="rule-punish">Мут до 14 дней.</span></div>
-        <div class="rule-item"><span class="rule-num">3.11</span>Запрещена публикация контента, вызывающего отвращение, а также контент 18+ (кроме артов 18+ внутри игры, но их запрещено выставлять в публичных местах). <span class="rule-punish">Мут до 30 дней в чате / Бан до 30 дней в игре.</span></div>
-        <div class="rule-item"><span class="rule-num">3.12</span>Запрещено мешать в войсах (музыка, лишние звуки, перекрикивание). <span class="rule-punish">Мут до 7 дней.</span></div>
-        <div class="rule-item"><span class="rule-num">3.13</span>Если человеку неприятно слушать ваши высказывания — прекратите. <span class="rule-punish">Игнорирование — Мут до 3 дней.</span></div>
-        <div class="rule-item"><span class="rule-num">3.14</span>Запрещено порочить репутацию сервера (критика без аргументов, разведение вражды между серверами). <span class="rule-punish">Перманентный бан.</span></div>
-      </div>
-
-      <div class="card">
-        <h3 style="color: #ff9f43; margin-bottom: 10px;">4. PvP</h3>
-        <div class="rule-item">PvP разрешён везде на сервере.<br><b style="color: #2ed573;">Наказание: Нарушений нет (но читы и гриферство под запретом).</b></div>
-      </div>
-
-      <div class="card">
-        <h3 style="color: #ff9f43; margin-bottom: 10px;">5. Попрошайничество у админов</h3>
-        <div class="rule-item">Нельзя выпрашивать у операторов креатив, админки или вещи.<br><b style="color: #ff9f43;">Наказание: Игнор, кик или изъятие вещей.</b></div>
-      </div>
-
-      <div class="card">
-        <h3 style="color: #ff9f43; margin-bottom: 10px;">6. Экономика и раздачи</h3>
-        <div class="rule-item">Нельзя раздавать алмазные или незеритовые вещи новичкам просто так.<br><b style="color: #ff9f43;">Наказание: Предупреждение и изъятие предметов.</b></div>
-      </div>
-      <h2 style="margin: 32px 0 8px; font-size: 26px;">Механики сервера</h2>
-      <p style="color: #8d8d99; margin-bottom: 16px;">Как устроены приваты и другие особенности сервера.</p>
-
-      <div class="card">
-        <h3 style="color: #ff9f43; margin-bottom: 10px;">Приваты</h3>
-        <div class="rule-item">
-          Приватом считается:
-          <ul class="rule-list">
-            <li>табличка со своим ником;</li>
-            <li>скриншот с координатами и обозначением территории блоками.</li>
-          </ul>
-          Всё это отправляется в канал «Приваты».
-        </div>
-        <div class="rule-item">Если на месте уже есть постройки или табличка - сначала спросите владельца. Если владелец неизвестен - обратитесь к модерации.</div>
-      </div>
-    </section>
-
-    <!-- КАРТА -->
-    <section id="mapSection" class="section">
-      <div class="card" style="text-align: center; padding: 64px 20px;">
-        <h2 style="font-size: 24px; margin-bottom: 12px;">🗺️ Онлайн-карта в разработке</h2>
-        <p style="color: #8d8d99;">Совсем скоро здесь появится интерактивная карта мира!</p>
-      </div>
-    </section>
-
-    <!-- ПРОФИЛЬ / ВАЙТЛИСТ -->
-    <section id="profileSection" class="section">
-      <!-- Закрыто -->
-      <div id="guestBlock" class="card" style="text-align: center; padding: 48px 20px;">
-        <h2>🔒 Доступ ограничен</h2>
-        <p style="color: #8d8d99; margin: 12px 0 24px 0;">Войдите или зарегистрируйтесь, чтобы подать заявку в WhiteList.</p>
-        <button class="submit-btn" style="max-width: 220px; margin: 0 auto;" onclick="openAuthModal('login')">Войти</button>
-      </div>
-
-      <!-- Открыто -->
-      <div id="userBlock" style="display: none;">
-        
-        <!-- Профиль -->
-        <div class="card">
-          <h2 id="profTitle" style="margin-bottom: 16px;">Профиль</h2>
-          <p style="margin-bottom: 8px; color: #8d8d99;">Статус заявки: <span class="status-badge pending" id="profStatus">Не подана</span></p>
-          <p style="margin-bottom: 8px; color: #8d8d99;">Ваш аккаунт: <b id="profNick" style="color: #fff;">-</b></p>
-          <p style="margin-bottom: 8px; color: #8d8d99;">Ник в Майнкрафте: <b id="profWlNick" style="color: #ff9f43;">Не указан</b></p>
-          <p style="margin-bottom: 8px; color: #8d8d99;">Ник в Twitch: <b id="profTwitchNick" style="color: #9146FF;">Не указан</b></p>
-          <p style="margin-bottom: 20px; color: #8d8d99;">Роль: <b id="profRole" style="color: #fff;">Игрок</b></p>
-          <div id="profReason" style="display:none; margin-bottom: 20px; padding: 12px; border-radius: 8px; font-size: 14px; line-height: 1.4;"></div>
-          <button style="background: #202024; color: #f55a5a; border: 1px solid #29292e; padding: 8px 16px; border-radius: 6px; cursor: pointer;" onclick="logout()">Выйти</button>
-        </div>
-
-        <!-- Форма заявки -->
-        <div class="card" id="wlFormCard">
-          <h3 style="margin-bottom: 6px;">Подать заявку в WhiteList</h3>
-          <p style="color: #8d8d99; font-size: 14px; margin-bottom: 16px;">Заполните данные для проверки администрацией.</p>
-          <form onsubmit="submitWL(event)">
-            <div class="input-group">
-              <label>Ник в Minecraft</label>
-              <input type="text" id="wlNickInput" required placeholder="Ваш ник в майнкрафте" autocomplete="off" oninput="validateEnglishInput(this)">
-            </div>
-            <div class="input-group">
-              <label>Ник на Twitch</label>
-              <input type="text" id="wlTwitchInput" required placeholder="Ваш ник на twitch" autocomplete="off" oninput="validateEnglishInput(this)">
-            </div>
-            <div class="input-group">
-              <label>Что вы будете делать на сервере?</label>
-              <textarea id="wlText" rows="3" required placeholder="Например: строить город, развивать экономику..."></textarea>
-            </div>
-            <button type="submit" class="submit-btn" id="wlSubmitBtn">Отправить заявку</button>
-            <div id="wlMsg" style="display:none; margin-top:12px; padding:12px; border-radius:8px; font-size:14px; line-height:1.4;"></div>
-          </form>
-        </div>
-
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <div class="footer-social">
-      <a class="social-link discord" href="https://discord.gg/PWnYtHwkUJ" target="_blank" rel="noopener noreferrer" aria-label="Discord" title="Discord">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
-      </a>
-      <a class="social-link telegram" href="https://t.me/cocacola_wvv" target="_blank" rel="noopener noreferrer" aria-label="Telegram" title="Telegram">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-      </a>
+  <section id="tax" class="tab on card">
+    <div class="hero">
+      <div class="big"><span class="gem">💎</span> 20<small>алмазной руды каждую неделю</small></div>
     </div>
-    <div class="footer-title">© 2026 Colaland — ванильный Minecraft-сервер</div>
-    <div class="footer-author">Сайт сделан <b>maks8777</b></div>
-    <div class="footer-note">Не является продуктом Mojang / Microsoft</div>
-  </footer>
+    <ul class="rules">
+      <li>Налог платит <b>каждый игрок</b>, без исключений.</li>
+      <li>Сумма всегда одна: <b>20 алмазной руды</b>. Никаких других налогов нет.</li>
+      <li>Срок оплаты — <b>до конца недели (воскресенье)</b>.</li>
+      <li>Не можешь заплатить? Напиши причину во вкладке <b>«Почему не плачу»</b>.</li>
+    </ul>
+  </section>
 
-  <!-- Модалка входа / регистрации -->
-  <div class="modal-overlay" id="authModal">
-    <div class="modal-card">
-      <h2 id="modalTitle" style="margin-bottom: 20px;">Авторизация</h2>
-      <form onsubmit="handleAuth(event)">
-        <div class="input-group">
-          <label>Никнейм (только английские буквы)</label>
-          <input type="text" id="inputNick" required placeholder="Ваш ник" autocomplete="off" oninput="validateEnglishInput(this)">
-        </div>
-        <div class="input-group">
-          <label>Пароль</label>
-          <input type="password" id="inputPass" required placeholder="••••••••">
-        </div>
-        <div class="input-group" id="confirmPassGroup" style="display: none;">
-          <label>Подтвердите пароль</label>
-          <input type="password" id="inputPassConfirm" placeholder="••••••••">
-        </div>
-        <button type="submit" class="submit-btn" id="modalSubmitBtn">Продолжить</button>
-      </form>
-      <span class="switch-link" id="switchModalMode" onclick="toggleAuthMode()">Нет аккаунта? Зарегистрироваться</span>
-      <div style="text-align: center; margin-top: 12px;">
-        <span style="color: #8d8d99; font-size: 13px; cursor: pointer;" onclick="closeAuthModal()">Отмена</span>
-      </div>
+  <section id="pay" class="tab card">
+    <h2>Кто заплатил на этой неделе</h2>
+    <div class="send">
+      <input id="payNick" placeholder="Твой ник" maxlength="16" style="flex:1;min-width:150px">
+      <button class="btn" id="payBtn">Оплатил 20 💎</button>
     </div>
-  </div>
+    <ul class="list" id="paidList"></ul>
+    <p class="note">Новая неделя начинается с понедельника. Список пока хранится только в твоём браузере.</p>
+  </section>
 
-  <script>
-    // Безопасное хранилище: если браузер блокирует localStorage (предпросмотр, iframe, приватный режим),
-    // данные хранятся в памяти до перезагрузки страницы, и сайт всё равно работает.
-    const store = (function () {
-      try {
-        const t = '__colaland_test__';
-        window.localStorage.setItem(t, '1');
-        window.localStorage.removeItem(t);
-        return window.localStorage;
-      } catch (e) {
-        const mem = {};
-        return {
-          getItem: k => (k in mem ? mem[k] : null),
-          setItem: (k, v) => { mem[k] = String(v); },
-          removeItem: k => { delete mem[k]; }
-        };
-      }
-    })();
+  <section id="why" class="tab card">
+    <h2>Почему не могу заплатить</h2>
+    <a class="btn formbtn" href="https://docs.google.com/forms/d/e/1FAIpQLSfYh_zRGpsNhmgKcdNDizzRU1aEXIvDLnEE_OnmkBL8Oa3psg/viewform" target="_blank" rel="noopener">📝 Написать причину в форме</a>
+    <p class="note" style="margin-top:0">Ответ сразу попадёт к админу.</p>
+    <p class="or">Или оставь заметку для себя:</p>
+    <input id="whyNick" placeholder="Твой ник" maxlength="16">
+    <textarea id="whyText" placeholder="Напиши, почему не получается заплатить налог…" maxlength="400"></textarea>
+    <button class="btn" id="whyBtn">Отправить админу</button>
+    <ul class="list" id="whyList"></ul>
+    <p class="note">Причина уйдёт админу в Discord и сохранится в списке ниже у тебя в браузере.</p>
+  </section>
+</div>
 
-    function readJSON(key, fallback) {
-      try { return JSON.parse(store.getItem(key)) || fallback; } catch (e) { return fallback; }
-    }
+<script>
+// ===== НАСТРОЙКА =====
+// Вставь сюда адрес вебхука Discord (Настройки канала → Интеграции → Вебхуки → Копировать URL).
+// Тогда причины будут сами прилетать в этот канал. Если оставить пусто — работает кнопка «Скопировать».
+const CONFIG={discordWebhook:"https://discord.com/api/webhooks/1570785148662849557/dBkwXgPHT3FEv8-01vnTwS0V8jbR9Yl1swJ4DFerWBG0BhEDkP_BR67_hZ7WC9jtVCr_"};
+// =====================
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||d)}catch(e){return JSON.parse(d)}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 
-    let currentUser = readJSON('colaland_user', null);
-    let applications = readJSON('colaland_apps', []);
-    let registeredUsers = readJSON('colaland_reg_users', []);
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button,.tab').forEach(e=>e.classList.remove('on'));
+  b.classList.add('on');$(b.dataset.t).classList.add('on');
+});
 
-    // Чистим данные от старых версий сайта: битые записи без нужных полей выбрасываем,
-    // иначе они ломают весь скрипт (ошибка toLowerCase of undefined).
-    if (!currentUser || typeof currentUser.nick !== 'string' || currentUser.isAdmin) currentUser = null;
-    if (!Array.isArray(applications)) applications = [];
-    applications = applications
-      .filter(a => a && typeof a.user === 'string')
-      .map(a => ({
-        user: a.user,
-        nick: String(a.nick || ''),
-        twitch: String(a.twitch || ''),
-        reason: String(a.reason || ''),
-        status: String(a.status || 'На рассмотрении'),
-        submittedAt: Number(a.submittedAt || 0)
-      }));
-    if (!Array.isArray(registeredUsers)) registeredUsers = [];
-    registeredUsers = registeredUsers.filter(u => u && typeof u.nick === 'string' && typeof u.pass === 'string');
-    let isRegisterMode = false;
+// оплата
+const WEEK=Math.floor((Date.now()-4*864e5)/6048e5);
+let paid=load('nm_paid','{}');
+function drawPay(){
+  const l=Object.keys(paid[WEEK]||{});
+  $('paidList').innerHTML=l.length?l.map(n=>`<li>✅ <span class="who">${esc(n)}</span> — 20 💎</li>`).join(''):'<li class="empty">Пока никто не заплатил на этой неделе</li>';
+}
+$('payBtn').onclick=()=>{
+  const n=$('payNick').value.trim();if(!n)return;
+  (paid[WEEK]=paid[WEEK]||{})[n]=true;save('nm_paid',paid);$('payNick').value='';drawPay();
+};
 
-    // ====== НАСТРОЙКА ОТПРАВКИ ЗАЯВОК ======
-    // Вставьте сюда адрес вашего Cloudflare Worker (например https://colaland.ваше-имя.workers.dev).
-    // Заявки уходят на него, а он публикует их в Discord с кнопками «Принять» / «Отказать».
-    const WORKER_URL = 'https://colaland.nariman2024n.workers.dev';
-
-    function escapeHtml(str) {
-      return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    }
-
-    async function sendToDiscord(app) {
-      if (!WORKER_URL) return false;
-      const res = await fetch(WORKER_URL.replace(/\/+$/, '') + '/apply', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: app.user, nick: app.nick, twitch: app.twitch, reason: app.reason })
-      });
-      return res.ok;
-    }
-
-    // ====== РЕШЕНИЯ АДМИНИСТРАЦИИ (файл decisions.json рядом с сайтом) ======
-    let decisions = {};
-
-    async function loadDecisions() {
-      try {
-        let res = null;
-        if (WORKER_URL) {
-          // через Worker: решение видно сразу, без задержки GitHub Pages
-          try { res = await fetch(WORKER_URL.replace(/\/+$/, '') + '/decisions', { cache: 'no-store' }); } catch (e) { res = null; }
-        }
-        if (!res || !res.ok) res = await fetch('decisions.json?t=' + Date.now(), { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          const next = {};
-          Object.keys(data).forEach(k => { if (k.charAt(0) !== '_') next[k.toLowerCase()] = data[k]; });
-          decisions = next;
-        }
-      } catch (e) { /* файл недоступен (например, сайт открыт с компьютера) — остаёмся на локальном статусе */ }
-      updateUI();
-    }
-
-    function isoDay(ts) { return new Date(ts).toISOString().slice(0, 10); }
-
-    function getMyApp() {
-      if (!currentUser) return null;
-      return applications.find(a => a.user.toLowerCase() === currentUser.nick.toLowerCase()) || null;
-    }
-
-    function getDecision() {
-      if (!currentUser) return null;
-      const app = getMyApp();
-      // ищем решение сначала по нику в Minecraft из заявки, затем по нику аккаунта на сайте
-      const keys = [app && app.nick, currentUser.nick].filter(Boolean).map(k => k.toLowerCase());
-      let d = null;
-      for (const key of keys) {
-        const c = decisions[key];
-        if (c && (c.status === 'accepted' || c.status === 'rejected')) { d = c; break; }
-      }
-      if (!d) return null;
-      // если игрок подал заявку заново после даты решения — старое решение не показываем
-      if (app && app.submittedAt && d.date && String(d.date) < isoDay(app.submittedAt)) return null;
-      return d;
-    }
-
-    function validateEnglishInput(input) {
-      input.value = input.value.replace(/[^a-zA-Z0-9_]/g, '');
-    }
-
-    let prefilledFor = null;
-
-    function updateUI() {
-      const guestBlock = document.getElementById('guestBlock');
-      const userBlock = document.getElementById('userBlock');
-      const navAuthBtn = document.getElementById('navAuthBtn');
-
-      if (currentUser) {
-        navAuthBtn.textContent = currentUser.nick;
-        guestBlock.style.display = 'none';
-        userBlock.style.display = 'block';
-
-        document.getElementById('profTitle').textContent = currentUser.nick;
-        document.getElementById('profNick').textContent = currentUser.nick;
-        document.getElementById('profRole').textContent = 'Игрок';
-
-        const app = getMyApp();
-        const decision = getDecision();
-        const badge = document.getElementById('profStatus');
-        const reasonBox = document.getElementById('profReason');
-        const wlFormCard = document.getElementById('wlFormCard');
-        reasonBox.style.display = 'none';
-        // форма показывается, только пока заявка ещё не отправлена
-        wlFormCard.style.display = (app || decision) ? 'none' : 'block';
-
-        const showBox = (bg, color, text) => {
-          reasonBox.style.display = 'block';
-          reasonBox.style.background = bg;
-          reasonBox.style.color = color;
-          reasonBox.style.border = '1px solid ' + color;
-          reasonBox.textContent = text;
-        };
-
-        if (decision && decision.status === 'accepted') {
-          badge.textContent = 'Принят';
-          badge.className = 'status-badge';
-          showBox('rgba(46,213,115,0.15)', '#2ed573', '✅ Ваша заявка одобрена! Вы добавлены в вайтлист — можно заходить на сервер.');
-        } else if (decision && decision.status === 'rejected') {
-          badge.textContent = 'Отказано';
-          badge.className = 'status-badge rejected';
-          showBox('rgba(245,90,90,0.15)', '#f55a5a', '❌ Причина отказа: ' + (decision.reason || 'не указана') + '. Повторно подать заявку нельзя. Если считаете отказ ошибкой, создайте тикет в Discord.');
-        } else if (app) {
-          badge.textContent = 'На рассмотрении';
-          badge.className = 'status-badge pending';
-          showBox('rgba(255,159,67,0.15)', '#ff9f43', '📨 Заявка отправлена администрации и ждёт решения. Статус обновится здесь сам, повторно отправлять заявку не нужно.');
-        } else {
-          badge.textContent = 'Не подана';
-          badge.className = 'status-badge pending';
-        }
-
-        if (app) {
-          document.getElementById('profWlNick').textContent = app.nick;
-          document.getElementById('profTwitchNick').textContent = app.twitch;
-        } else {
-          document.getElementById('profWlNick').textContent = 'Не указан';
-          document.getElementById('profTwitchNick').textContent = 'Не указан';
-          // поля формы заполняем только один раз после входа, чтобы не стереть то, что игрок печатает
-          if (prefilledFor !== currentUser.nick) {
-            document.getElementById('wlNickInput').value = currentUser.nick;
-            document.getElementById('wlTwitchInput').value = '';
-            document.getElementById('wlText').value = '';
-            prefilledFor = currentUser.nick;
-          }
-        }
-      } else {
-        prefilledFor = null;
-        navAuthBtn.textContent = 'Войти';
-        guestBlock.style.display = 'block';
-        userBlock.style.display = 'none';
-      }
-    }
-
-    function copyIP(btn) {
-      const ip = document.getElementById('serverIp').textContent.trim();
-      const done = () => {
-        btn.textContent = 'Скопировано ✓';
-        setTimeout(() => { btn.textContent = 'Скопировать'; }, 2000);
-      };
-      const fallback = () => {
-        const t = document.createElement('textarea');
-        t.value = ip;
-        t.style.position = 'fixed';
-        t.style.opacity = '0';
-        document.body.appendChild(t);
-        t.select();
-        try { if (document.execCommand('copy')) done(); } catch (e) { /* ignore */ }
-        document.body.removeChild(t);
-      };
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(ip).then(done).catch(fallback);
-      } else {
-        fallback();
-      }
-    }
-
-    function switchTab(tab) {
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-
-      if (tab === 'home') {
-        document.getElementById('tabHomeBtn').classList.add('active');
-        document.getElementById('homeSection').classList.add('active');
-      } else if (tab === 'rules') {
-        document.getElementById('tabRulesBtn').classList.add('active');
-        document.getElementById('rulesSection').classList.add('active');
-      } else if (tab === 'map') {
-        document.getElementById('tabMapBtn').classList.add('active');
-        document.getElementById('mapSection').classList.add('active');
-      } else {
-        document.getElementById('tabProfileBtn').classList.add('active');
-        document.getElementById('profileSection').classList.add('active');
-        loadDecisions();
-      }
-    }
-
-    function openAuthModal(mode = 'login') {
-      if (currentUser) {
-        switchTab('profile');
-        return;
-      }
-      isRegisterMode = (mode === 'register');
-      updateModalMode();
-      document.getElementById('authModal').style.display = 'flex';
-    }
-
-    function closeAuthModal() {
-      document.getElementById('authModal').style.display = 'none';
-    }
-
-    function toggleAuthMode() {
-      isRegisterMode = !isRegisterMode;
-      updateModalMode();
-    }
-
-    function updateModalMode() {
-      const title = document.getElementById('modalTitle');
-      const confirmGroup = document.getElementById('confirmPassGroup');
-      const submitBtn = document.getElementById('modalSubmitBtn');
-      const switchLink = document.getElementById('switchModalMode');
-
-      if (isRegisterMode) {
-        title.textContent = 'Регистрация';
-        confirmGroup.style.display = 'block';
-        document.getElementById('inputPassConfirm').required = true;
-        submitBtn.textContent = 'Зарегистрироваться';
-        switchLink.textContent = 'Уже есть аккаунт? Войти';
-      } else {
-        title.textContent = 'Авторизация';
-        confirmGroup.style.display = 'none';
-        document.getElementById('inputPassConfirm').required = false;
-        submitBtn.textContent = 'Войти';
-        switchLink.textContent = 'Нет аккаунта? Зарегистрироваться';
-      }
-    }
-
-    function handleAuth(e) {
-      e.preventDefault();
-      const nick = document.getElementById('inputNick').value.trim();
-      const pass = document.getElementById('inputPass').value.trim();
-
-      if (isRegisterMode) {
-        const passConfirm = document.getElementById('inputPassConfirm').value.trim();
-        if (pass !== passConfirm) {
-          alert('❌ Пароли не совпадают!');
-          return;
-        }
-        const existing = registeredUsers.find(u => u.nick.toLowerCase() === nick.toLowerCase());
-        if (existing) {
-          alert('❌ Этот ник уже зарегистрирован!');
-          return;
-        }
-        registeredUsers.push({ nick, pass });
-        store.setItem('colaland_reg_users', JSON.stringify(registeredUsers));
-        currentUser = { nick: nick };
-      } else {
-        const user = registeredUsers.find(u => u.nick.toLowerCase() === nick.toLowerCase() && u.pass === pass);
-        if (!user) {
-          alert('❌ Неверный ник или пароль, либо аккаунт не зарегистрирован!');
-          return;
-        }
-        currentUser = { nick: user.nick };
-      }
-
-      store.setItem('colaland_user', JSON.stringify(currentUser));
-      document.getElementById('authModal').style.display = 'none';
-      updateUI();
-      switchTab('profile');
-    }
-
-    function logout() {
-      currentUser = null;
-      store.removeItem('colaland_user');
-      updateUI();
-      switchTab('rules');
-    }
-
-    function showWlMsg(text, kind) {
-      const box = document.getElementById('wlMsg');
-      const colors = {
-        ok:   ['rgba(46,213,115,0.15)', '#2ed573'],
-        warn: ['rgba(255,159,67,0.15)', '#ff9f43'],
-        err:  ['rgba(245,90,90,0.15)',  '#f55a5a']
-      }[kind];
-      box.style.display = 'block';
-      box.style.background = colors[0];
-      box.style.color = colors[1];
-      box.style.border = '1px solid ' + colors[1];
-      box.textContent = text;
-    }
-
-    let isSubmitting = false;
-
-    async function submitWL(e) {
-      e.preventDefault();
-      if (!currentUser || isSubmitting) return;
-
-      // Заявку можно отправить только один раз
-      if (getMyApp() || getDecision()) {
-        showWlMsg('⚠️ Вы уже отправляли заявку. Повторно подать её нельзя.', 'warn');
-        updateUI();
-        return;
-      }
-
-      const wlNick = document.getElementById('wlNickInput').value.trim();
-      const twitchNick = document.getElementById('wlTwitchInput').value.trim();
-      const reason = document.getElementById('wlText').value.trim();
-      const btn = document.getElementById('wlSubmitBtn');
-
-      if (!wlNick || !twitchNick) {
-        showWlMsg('❌ Заполните ник в Майнкрафте и Twitch!', 'err');
-        return;
-      }
-
-      if (!WORKER_URL) {
-        showWlMsg('⚠️ Отправка заявок ещё не настроена владельцем сайта (не указан WORKER_URL).', 'warn');
-        return;
-      }
-
-      const app = { user: currentUser.nick, nick: wlNick, twitch: twitchNick, reason: reason, status: 'На рассмотрении', submittedAt: Date.now() };
-
-      isSubmitting = true;
-      btn.disabled = true;
-      btn.textContent = 'Отправка...';
-
-      let sent = false;
-      try {
-        sent = await sendToDiscord(app);
-      } catch (err) {
-        sent = false;
-      }
-
-      isSubmitting = false;
-      btn.disabled = false;
-      btn.textContent = 'Отправить заявку';
-
-      if (!sent) {
-        // не сохраняем: заявка не дошла, игрок сможет попробовать ещё раз
-        showWlMsg('❌ Не удалось отправить заявку. Попробуйте ещё раз чуть позже.', 'err');
-        return;
-      }
-
-      applications.push(app);
-      store.setItem('colaland_apps', JSON.stringify(applications));
-      updateUI();
-    }
-
-    updateUI();
-    loadDecisions();
-
-    // Статус обновляется сам: раз в 15 секунд и при возвращении на вкладку — перезагружать страницу не нужно
-    setInterval(() => { if (currentUser && !document.hidden) loadDecisions(); }, 15000);
-    document.addEventListener('visibilitychange', () => { if (currentUser && !document.hidden) loadDecisions(); });
-  </script>
+// причины
+let why=load('nm_why','[]');
+function drawWhy(){
+  $('whyList').innerHTML=why.length?why.slice().reverse().map(m=>`<li><span class="who">${esc(m.n)}</span><span class="when">${new Date(m.d).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</span><br>${esc(m.t)}</li>`).join(''):'<li class="empty">Пока никто ничего не написал</li>';
+}
+let lastSent=0;
+$('whyBtn').onclick=async()=>{
+  const n=$('whyNick').value.trim()||'Игрок',t=$('whyText').value.trim();if(!t)return;
+  const btn=$('whyBtn');
+  if(CONFIG.discordWebhook){
+    if(Date.now()-lastSent<30000){btn.textContent='Подожди 30 секунд';setTimeout(()=>btn.textContent='Отправить админу',2500);return}
+    btn.disabled=true;btn.textContent='Отправляю…';
+    try{
+      const r=await fetch(CONFIG.discordWebhook,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({username:'Налог Майн',content:`💎 **${n}** не может заплатить налог 20 руды.\nПричина: ${t}`,allowed_mentions:{parse:[]}})});
+      if(!r.ok)throw new Error(r.status);
+      lastSent=Date.now();btn.textContent='Отправлено ✓';
+    }catch(e){btn.textContent='Не вышло, попробуй позже'}
+    btn.disabled=false;setTimeout(()=>btn.textContent='Отправить админу',2500);
+  }
+  why.push({n,t,d:Date.now()});why=why.slice(-100);save('nm_why',why);$('whyText').value='';drawWhy();
+};
+drawPay();drawWhy();
+</script>
 </body>
 </html>
